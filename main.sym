@@ -1,0 +1,256 @@
+000     @SCRATCH
+001     @SCRATCH
+001     _RETURN_
+002     @SCRATCH
+003     @SCRATCH
+004     @SCRATCH
+005     @INTERRUPT_AREA
+006     @INTERRUPT_AREA
+007     @INTERRUPT_AREA
+008     @INTERRUPT_AREA
+009     @INTERRUPT_AREA
+00A     @INTERRUPT_AREA
+00B     @INTERRUPT_AREA
+00C     @INTERRUPT_AREA
+00D     @INTERRUPT_AREA
+00E     @INTERRUPT_AREA
+00F     @INTERRUPT_AREA
+010     @INTERRUPT_AREA
+011     @INTERRUPT_AREA
+012     @INTERRUPT_AREA
+013     @INTERRUPT_AREA
+014     @INTERRUPT_AREA
+015     @INTERRUPT_AREA
+016     @INTERRUPT_AREA
+017     @INTERRUPT_AREA
+018.0   MX_PLSP_AUX
+018.1   MX_PLSP_OUT
+018.2   teclado3x4_on
+018.3   MX_PLSP_NXT
+019-01C MWL_OUT
+01D-020 MBL_DG1
+021-024 MBL_DG2
+025-028 MBL_DG3
+029-02C MBL_DG4
+02D-030 MBL_DG5
+031-032 MW_SCREEN
+033-034 MW_SCREEN_AUX
+035     MB_RECEITA
+036     MB_RECEITA_ED
+037     MB_ESTAGIO
+038-039 MW_AGUA_EF
+03A     MB_TEOR_AT
+03B-03C TON_IHM_ATUALIZA
+03D     MB_TECLA_PRESS
+03E     MB_TECLA_PRESS_AUX
+03F     MB_TEOR_SP
+040-041 MW_T_HOMO_INI_SP
+042-043 MW_TEOR_APROX_SP
+044-045 MW_TON_SP
+046-047 MW_TOF_SP
+048-049 MW_T_HOMO_SP
+04A-04B MW_TON_FINO_SP
+04C-04D MW_TOF_FINO_SP
+04E-04F MW_GANHO
+050-051 MW_GANHO_AUX
+052-053 MW_OFFSET
+054-055 MW_OFFSET_AUX
+056-057 MW_HIDR_REL
+058-059 MW_HIDR_REL_AUX
+05A-05B MW_METODO_LEITURA
+05C-05D MW_METODO_LEITURA_AUX
+05E-05F MW_T_AMOSTRA
+060-061 MW_T_AMOSTRA_AUX
+062-063 MW_FATOR_MEDIA
+064-065 MW_FATOR_MEDIA_AUX
+066     write_eeprom_word.endereco
+066     teclado_3x4_valor.tecla
+066     lcd_init.i
+066     read_eeprom_word.endereco
+066     lcd_clear.@SCRATCH1
+066     IHM.@SCRATCH1
+066     MAIN.@SCRATCH1
+067-06A @PRINTF_L32U_84FP.P1
+067     @PRINTF_U_84.P2
+067-06A teclado_3x4_valor.valor
+067-068 @PRINTF_LU_84.P1
+067     plsp.in
+067-068 write_eeprom_word.valor
+067     lcd_init.@SCRATCH1
+067     read_eeprom_word.@SCRATCH1
+067     IHM.@SCRATCH2
+068     @PRINTF_U_84.P1
+068     lcd_init.@SCRATCH2
+068     read_eeprom_word.@SCRATCH2
+069     @DIV88.P1
+069     write_eeprom_word.@SCRATCH1
+069     read_eeprom_word.@SCRATCH3
+069     @PRINTF_LU_84.@SCRATCH1
+06A     @DIV88.P1
+06A-06B @MUL1616.P2
+06A     write_eeprom_word.@SCRATCH2
+06A     read_eeprom_word.@SCRATCH4
+06A     @PRINTF_LU_84.@SCRATCH2
+06B     @PRINTF_L32U_84FP.P1
+06B     teclado_3x4_valor.casas
+06B     write_eeprom_word.@SCRATCH3
+06B     read_eeprom_word.@SCRATCH5
+06B     @DIV88.@SCRATCH1
+06B     @PRINTF_LU_84.@SCRATCH3
+06C-06D @MUL1616.P1
+06C-06F @MUL3232.P2
+06C     teclado_3x4_valor.@SCRATCH1
+06C     read_eeprom_word.@SCRATCH6
+06C     @PRINTF_LU_84.@SCRATCH4
+06C     @PRINTF_L32U_84FP.@SCRATCH1
+06D     teclado_3x4_valor.@SCRATCH2
+06D     read_eeprom_word.@SCRATCH7
+06D     @PRINTF_LU_84.@SCRATCH5
+06D     @PRINTF_L32U_84FP.@SCRATCH2
+06E     teclado_3x4_valor.@SCRATCH3
+06E     @MUL1616.@SCRATCH1
+06E     @PRINTF_LU_84.@SCRATCH6
+06E     @PRINTF_L32U_84FP.@SCRATCH3
+06F     teclado_3x4_valor.@SCRATCH4
+06F     @PRINTF_LU_84.@SCRATCH7
+06F     @PRINTF_L32U_84FP.@SCRATCH4
+070-073 @MUL3232.P1
+070     teclado_3x4_valor.@SCRATCH5
+070     @PRINTF_L32U_84FP.@SCRATCH5
+071     teclado_3x4_valor.@SCRATCH6
+071     @PRINTF_L32U_84FP.@SCRATCH6
+072     @PRINTF_L32U_84FP.@SCRATCH7
+073     @PRINTF_L32U_84FP.@SCRATCH8
+074     lcd_putc.c
+074-077 @DIV3232.P1
+074     @MUL3232.@SCRATCH1
+075     @delay_ms1.P1
+075     lcd_gotoxy.x
+075     @MUL3232.@SCRATCH2
+076     lcd_gotoxy.y
+076     @MUL3232.@SCRATCH3
+077     lcd_gotoxy.address
+077     @MUL3232.@SCRATCH4
+078-07B @DIV3232.P1
+078     lcd_gotoxy.@SCRATCH1
+078     @MUL3232.@SCRATCH5
+079     lcd_send_byte.address
+079     @MUL3232.@SCRATCH6
+07A     lcd_send_byte.n
+07B     lcd_read_byte.low
+07B     lcd_send_byte.@SCRATCH1
+07C     lcd_read_byte.high
+07C     lcd_send_nibble.n
+07C     @DIV3232.@SCRATCH1
+07D     lcd_read_byte.@SCRATCH1
+07D     @DIV3232.@SCRATCH2
+07E     @DIV3232.@SCRATCH3
+07F     @DIV3232.@SCRATCH4
+080     @DIV3232.@SCRATCH5
+F81     lcd
+F83     PSP_DATA
+FB4.6   C1OUT
+FB4.7   C2OUT
+FBB     CCP_2_LOW
+FBB-FBC CCP_2
+FBC     CCP_2_HIGH
+FBE     CCP_1_LOW
+FBE-FBF CCP_1
+FBF     CCP_1_HIGH
+FE9-FEA @WRITE_PROGRAM_MEMORY.P1
+FE9-FEA @READ_PROGRAM_MEMORY.P2
+FF6-FF8 @WRITE_PROGRAM_MEMORY.P1
+FF6-FF8 @READ_PROGRAM_MEMORY.P2
+
+ROM Allocation:
+063C  @delay_ms1
+009E  LCD_INIT_STRING
+067C  lcd_read_byte
+0662  lcd_send_nibble
+06B4  lcd_send_byte
+06EA  lcd_init
+0742  lcd_gotoxy
+0764  lcd_putc
+07A8  lcd_clear
+00BC  @const91
+07E8  plsp
+080A  teclado3x4_scan
+0ADE  teclado_3x4_valor
+0A10  @DIV3232
+0E04  @goto10189
+0A8A  @MUL3232
+19E4  write_eeprom_word
+05DE  read_eeprom_word
+05BE  @MUL1616
+05AA  timer_zero
+0EFC  IHM
+00E8  @const157
+08D0  @DIV88
+08F8  @PRINTF_U_84
+095E  @PRINTF_LU_84
+0112  @const169
+012E  @const171
+014A  @const172
+016C  @const173
+019A  @const175
+01C8  @const176
+01E8  @const177
+0214  @const178
+0232  @const179
+025E  @const180
+028C  @const182
+02B8  @const184
+02E0  @const185
+030E  @const187
+033C  @const190
+0366  @const194
+0392  @const195
+03BE  @const197
+03EA  @const198
+0410  @const199
+0E30  @PRINTF_L32U_84FP
+043E  @const203
+0462  @const204
+0492  @const205
+04B6  @const206
+04E2  @const207
+0508  @const208
+1A4A  EEPROM
+1B2E  MAIN
+0536  @const212
+055E  @const213
+0586  @const214
+1B2E  @cinit
+
+Project Directory:
+    D:\Luciano\Documentos\Google Drive\Projetos\Maquinas para Artefatos de Concreto\Controle de Umidade\Software\
+
+Project Files:
+    main.c
+    C:\Program Files (x86)\PICC\devices\18F4520.h
+    DisplayLDC.C
+    Transicao.h
+    Teclado_matricial.h
+    eeprom.h
+
+Units:
+    main.c (main)
+
+Compiler Settings:
+    Processor:      PIC18F4520
+    Pointer Size:   16
+    ADC Range:      0-255
+    Opt Level:      9
+    Short,Int,Long: UNSIGNED: 1,8,16
+    Float,Double:   32,32
+
+Output Files:
+    Errors:      main.err
+    Ext Symbols: main.esym
+    INHX32:      main.hex
+    Symbols:     main.sym
+    List:        main.lst
+    Debug/COFF:  main.cof
+    Project:     main.PJT
+    Call Tree:   main.tre
+    Statistics:  main.sta

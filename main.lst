@@ -1,0 +1,2999 @@
+CCS PCH C Compiler, Version 4.074, 38112               27-mar-16 20:48
+
+               Filename: main.lst
+
+               ROM used: 7478 bytes (23%)
+                         Largest free fragment is 25286
+               RAM used: 103 (7%) at main() level
+                         129 (8%) worst case
+               Stack:    7 worst case (6 in main + 1 for interrupts)
+
+*
+0000:  GOTO   1B2E
+*
+0008:  MOVWF  05
+000A:  MOVFF  FD8,06
+000E:  MOVFF  FE0,07
+0012:  MOVLB  0
+0014:  MOVFF  FE9,0D
+0018:  MOVFF  FEA,08
+001C:  MOVFF  FE1,09
+0020:  MOVFF  FE2,0A
+0024:  MOVFF  FD9,0B
+0028:  MOVFF  FDA,0C
+002C:  MOVFF  FF3,14
+0030:  MOVFF  FF4,15
+0034:  MOVFF  FFA,16
+0038:  MOVFF  00,0F
+003C:  MOVFF  01,10
+0040:  MOVFF  02,11
+0044:  MOVFF  03,12
+0048:  MOVFF  04,13
+004C:  BTFSS  FF2.5
+004E:  GOTO   0058
+0052:  BTFSC  FF2.2
+0054:  GOTO   05AA
+0058:  MOVFF  0F,00
+005C:  MOVFF  10,01
+0060:  MOVFF  11,02
+0064:  MOVFF  12,03
+0068:  MOVFF  13,04
+006C:  BSF    0E.7
+006E:  MOVFF  0D,FE9
+0072:  MOVFF  08,FEA
+0076:  MOVFF  09,FE1
+007A:  MOVFF  0A,FE2
+007E:  MOVFF  0B,FD9
+0082:  MOVFF  0C,FDA
+0086:  MOVFF  14,FF3
+008A:  MOVFF  15,FF4
+008E:  MOVFF  16,FFA
+0092:  MOVF   05,W
+0094:  MOVFF  07,FE0
+0098:  MOVFF  06,FD8
+009C:  RETFIE 0
+.................... /*=============================================================================================================================================== 
+.................... DISPOSITIVO CORRETOR DE UMIDADE 
+.................... PROGRAMADOR: LUCIANO BELLARMINO	 
+....................  
+.................... DESCRITIVO: 
+....................  
+....................  
+.................... **HIST”RICO** 
+.................... V1.0.00		Data: Julho de 2014 
+.................... - Vers„o inicial. 
+.................... ===============================================================================================================================================*/ 
+.................... #include <18F4520.h>	//Inclui header do ucontrolador utilizado 
+.................... //////// Standard Header file for the PIC18F4520 device //////////////// 
+.................... #device PIC18F4520 
+.................... #list 
+....................  
+....................  
+....................  
+.................... /*=============================================================================================================================================== 
+.................... DEFINI«’ES 
+.................... ===============================================================================================================================================*/ 
+.................... #define	IX_BTN_OP		PIN_D0			//Bot„o de acesso ‡ tela de operaÁ„o 
+.................... #define	IX_BTN_REC		PIN_D1			//Bot„o de acesso ‡ receita 
+.................... #define	IX_BTN_PAR		PIN_D2			//Bot„o de acesso aos par‚metros 
+.................... #define	IX_BTN_NXT		PIN_D3			//Bot„o next 
+.................... #define IX_BTN_REST		PIN_D4			//Bot„o acesso restrito 
+.................... #define	IX_BTN_REC_SAVE	PIN_D5			//Bot„o salva receita 
+....................  
+.................... /*=============================================================================================================================================== 
+.................... CONFIGURA«’ES 
+.................... ===============================================================================================================================================*/ 
+.................... #use delay (clock=8M)			//Informa ‡ funÁ„o delay que o clock do oscilador È de 8MHz 
+*
+063C:  CLRF   FEA
+063E:  MOVLW  75
+0640:  MOVWF  FE9
+0642:  MOVF   FEF,W
+0644:  BZ    0660
+0646:  MOVLW  02
+0648:  MOVWF  01
+064A:  CLRF   00
+064C:  DECFSZ 00,F
+064E:  BRA    064C
+0650:  DECFSZ 01,F
+0652:  BRA    064A
+0654:  MOVLW  97
+0656:  MOVWF  00
+0658:  DECFSZ 00,F
+065A:  BRA    0658
+065C:  DECFSZ FEF,F
+065E:  BRA    0646
+0660:  RETLW  00
+.................... #fuses INTRC					//Define oscilador interno 
+....................  
+....................  
+.................... /*=============================================================================================================================================== 
+.................... BIBLIOTECAS 
+.................... ===============================================================================================================================================*/ 
+.................... #include <DisplayLDC.C> 
+.................... /////////////////////////////////////////////////////////////////////////// 
+.................... ////                             LCDD.C                                //// 
+.................... ////                 Driver for common LCD modules                     //// 
+.................... ////                                                                   //// 
+.................... ////  lcd_init()   Must be called before any other function.           //// 
+.................... ////                                                                   //// 
+.................... ////  lcd_putc(c)  Will display c on the next position of the LCD.     //// 
+.................... ////                     The following have special meaning:           //// 
+.................... ////                      \f  Clear display                            //// 
+.................... ////                      \n  Go to start of second line               //// 
+.................... ////                      \b  Move back one position                   //// 
+.................... ////                                                                   //// 
+.................... ////  lcd_gotoxy(x,y) Set write position on LCD (upper left is 1,1)    //// 
+.................... ////                                                                   //// 
+.................... ////  lcd_getc(x,y)   Returns character at position x,y on LCD         //// 
+.................... ////                                                                   //// 
+.................... /////////////////////////////////////////////////////////////////////////// 
+.................... ////        (C) Copyright 1996,2007 Custom Computer Services           //// 
+.................... //// This source code may only be used by licensed users of the CCS C  //// 
+.................... //// compiler.  This source code may only be distributed to other      //// 
+.................... //// licensed users of the CCS C compiler.  No other use, reproduction //// 
+.................... //// or distribution is permitted without written permission.          //// 
+.................... //// Derivative programs created using this software in object code    //// 
+.................... //// form are not restricted in any way.                               //// 
+.................... /////////////////////////////////////////////////////////////////////////// 
+....................  
+.................... // As defined in the following structure the pin connection is as follows: 
+.................... //     D0  enable 
+.................... //     D1  rs 
+.................... //     D2  rw 
+.................... //     D4  D4 
+.................... //     D5  D5 
+.................... //     D6  D6 
+.................... //     D7  D7 
+.................... // 
+.................... //   LCD pins D0-D3 are not used and PIC D3 is not used. 
+....................  
+.................... // Un-comment the following define to use port B 
+.................... #define use_portb_lcd TRUE 
+....................  
+....................  
+.................... struct lcd_pin_map {                 // This structure is overlayed 
+....................            BOOLEAN enable;           // on to an I/O port to gain 
+....................            BOOLEAN rs;               // access to the LCD pins. 
+....................            BOOLEAN rw;               // The bits are allocated from 
+....................            BOOLEAN unused;           // low order up.  ENABLE will 
+....................            int     data : 4;         // be pin B0. 
+....................         } lcd; 
+....................  
+....................  
+.................... #if defined use_portb_lcd 
+....................    //#locate lcd = getenv("sfr:PORTB")    // This puts the entire structure over the port 
+....................    #ifdef __pch__ 
+....................     #locate lcd = 0xf81 
+....................    #else 
+....................     #locate lcd = 6 
+....................    #endif 
+....................    #define set_tris_lcd(x) set_tris_b(x) 
+.................... #else 
+....................    //#locate lcd = getenv("sfr:PORTD")    // This puts the entire structure over the port 
+....................    #ifdef __pch__ 
+....................     #locate lcd = 0xf83 
+....................    #else 
+....................     #locate lcd = 8 
+....................    #endif 
+....................    #define set_tris_lcd(x) set_tris_d(x) 
+.................... #endif 
+....................  
+.................... #ifndef lcd_type 
+.................... #define lcd_type 2           // 0=5x7, 1=5x10, 2=2 lines 
+.................... #endif 
+....................  
+.................... #define lcd_line_two 0x40    // LCD RAM address for the second line 
+....................  
+....................  
+.................... BYTE const LCD_INIT_STRING[4] = {0x20 | (lcd_type << 2), 0xc, 1, 6}; 
+....................                              // These bytes need to be sent to the LCD 
+....................                              // to start it up. 
+....................  
+....................  
+....................                              // The following are used for setting 
+....................                              // the I/O port direction register. 
+....................  
+.................... struct lcd_pin_map const LCD_WRITE = {0,0,0,0,0}; // For write mode all pins are out 
+.................... struct lcd_pin_map const LCD_READ = {0,0,0,0,15}; // For read mode data pins are in 
+....................  
+....................  
+....................  
+.................... BYTE lcd_read_byte() { 
+....................       BYTE low,high; 
+....................       set_tris_lcd(LCD_READ); 
+*
+067C:  MOVLW  F0
+067E:  MOVWF  F93
+....................       lcd.rw = 1; 
+0680:  BSF    F81.2
+....................       delay_cycles(1); 
+0682:  NOP   
+....................       lcd.enable = 1; 
+0684:  BSF    F81.0
+....................       delay_cycles(1); 
+0686:  NOP   
+....................       high = lcd.data; 
+0688:  SWAPF  F81,W
+068A:  ANDLW  0F
+068C:  MOVWF  7C
+....................       lcd.enable = 0; 
+068E:  BCF    F81.0
+....................       delay_cycles(1); 
+0690:  NOP   
+....................       lcd.enable = 1; 
+0692:  BSF    F81.0
+....................       delay_us(1); 
+0694:  BRA    0696
+....................       low = lcd.data; 
+0696:  SWAPF  F81,W
+0698:  ANDLW  0F
+069A:  MOVWF  7B
+....................       lcd.enable = 0; 
+069C:  BCF    F81.0
+....................       set_tris_lcd(LCD_WRITE); 
+069E:  MOVLW  00
+06A0:  MOVWF  F93
+....................       return( (high<<4) | low); 
+06A2:  SWAPF  7C,W
+06A4:  MOVWF  00
+06A6:  MOVLW  F0
+06A8:  ANDWF  00,F
+06AA:  MOVF   00,W
+06AC:  IORWF  7B,W
+06AE:  MOVWF  01
+.................... } 
+06B0:  GOTO   06B8 (RETURN)
+....................  
+....................  
+.................... void lcd_send_nibble( BYTE n ) { 
+....................       lcd.data = n; 
+*
+0662:  SWAPF  7C,W
+0664:  ANDLW  F0
+0666:  MOVWF  00
+0668:  MOVLW  0F
+066A:  ANDWF  F81,W
+066C:  IORWF  00,W
+066E:  MOVWF  F81
+....................       delay_cycles(1); 
+0670:  NOP   
+....................       lcd.enable = 1; 
+0672:  BSF    F81.0
+....................       delay_us(2); 
+0674:  BRA    0676
+0676:  BRA    0678
+....................       lcd.enable = 0; 
+0678:  BCF    F81.0
+.................... } 
+067A:  RETLW  00
+....................  
+....................  
+.................... void lcd_send_byte( BYTE address, BYTE n ) { 
+....................  
+....................       lcd.rs = 0; 
+*
+06B4:  BCF    F81.1
+....................       while ( bit_test(lcd_read_byte(),7) ) ; 
+06B6:  BRA    067C
+06B8:  MOVFF  01,7B
+06BC:  BTFSC  01.7
+06BE:  BRA    06B6
+....................       lcd.rs = address; 
+06C0:  BTFSS  79.0
+06C2:  BCF    F81.1
+06C4:  BTFSC  79.0
+06C6:  BSF    F81.1
+....................       delay_cycles(1); 
+06C8:  NOP   
+....................       lcd.rw = 0; 
+06CA:  BCF    F81.2
+....................       delay_cycles(1); 
+06CC:  NOP   
+....................       lcd.enable = 0; 
+06CE:  BCF    F81.0
+....................       lcd_send_nibble(n >> 4); 
+06D0:  SWAPF  7A,W
+06D2:  MOVWF  7B
+06D4:  MOVLW  0F
+06D6:  ANDWF  7B,F
+06D8:  MOVFF  7B,7C
+06DC:  RCALL  0662
+....................       lcd_send_nibble(n & 0xf); 
+06DE:  MOVF   7A,W
+06E0:  ANDLW  0F
+06E2:  MOVWF  7B
+06E4:  MOVWF  7C
+06E6:  RCALL  0662
+.................... } 
+06E8:  RETLW  00
+....................  
+....................  
+.................... void lcd_init() { 
+....................     BYTE i; 
+....................     set_tris_lcd(LCD_WRITE); 
+06EA:  MOVLW  00
+06EC:  MOVWF  F93
+....................     lcd.rs = 0; 
+06EE:  BCF    F81.1
+....................     lcd.rw = 0; 
+06F0:  BCF    F81.2
+....................     lcd.enable = 0; 
+06F2:  BCF    F81.0
+....................     delay_ms(15); 
+06F4:  MOVLW  0F
+06F6:  MOVWF  75
+06F8:  RCALL  063C
+....................     for(i=1;i<=3;++i) { 
+06FA:  MOVLW  01
+06FC:  MOVWF  66
+06FE:  MOVF   66,W
+0700:  SUBLW  03
+0702:  BNC   0714
+....................        lcd_send_nibble(3); 
+0704:  MOVLW  03
+0706:  MOVWF  7C
+0708:  RCALL  0662
+....................        delay_ms(5); 
+070A:  MOVLW  05
+070C:  MOVWF  75
+070E:  RCALL  063C
+....................     } 
+0710:  INCF   66,F
+0712:  BRA    06FE
+....................     lcd_send_nibble(2); 
+0714:  MOVLW  02
+0716:  MOVWF  7C
+0718:  RCALL  0662
+....................     for(i=0;i<=3;++i) 
+071A:  CLRF   66
+071C:  MOVF   66,W
+071E:  SUBLW  03
+0720:  BNC   073E
+....................        lcd_send_byte(0,LCD_INIT_STRING[i]); 
+0722:  CLRF   03
+0724:  MOVF   66,W
+0726:  MOVFF  FF2,67
+072A:  BCF    FF2.7
+072C:  RCALL  009E
+072E:  BTFSC  67.7
+0730:  BSF    FF2.7
+0732:  MOVWF  68
+0734:  CLRF   79
+0736:  MOVWF  7A
+0738:  RCALL  06B4
+073A:  INCF   66,F
+073C:  BRA    071C
+.................... } 
+073E:  GOTO   1C94 (RETURN)
+....................  
+....................  
+.................... void lcd_gotoxy( BYTE x, BYTE y) { 
+....................    BYTE address; 
+....................  
+....................    if(y!=1) 
+0742:  DECFSZ 76,W
+0744:  BRA    0748
+0746:  BRA    074E
+....................      address=lcd_line_two; 
+0748:  MOVLW  40
+074A:  MOVWF  77
+....................    else 
+074C:  BRA    0750
+....................      address=0; 
+074E:  CLRF   77
+....................    address+=x-1; 
+0750:  MOVLW  01
+0752:  SUBWF  75,W
+0754:  ADDWF  77,F
+....................    lcd_send_byte(0,0x80|address); 
+0756:  MOVF   77,W
+0758:  IORLW  80
+075A:  MOVWF  78
+075C:  CLRF   79
+075E:  MOVWF  7A
+0760:  RCALL  06B4
+.................... } 
+0762:  RETLW  00
+....................  
+.................... void lcd_putc( char c) { 
+....................    switch (c) { 
+0764:  MOVF   74,W
+0766:  XORLW  0C
+0768:  BZ    0774
+076A:  XORLW  06
+076C:  BZ    0784
+076E:  XORLW  02
+0770:  BZ    0790
+0772:  BRA    079A
+....................      case '\f'   : lcd_send_byte(0,1); 
+0774:  CLRF   79
+0776:  MOVLW  01
+0778:  MOVWF  7A
+077A:  RCALL  06B4
+....................                    delay_ms(2); 
+077C:  MOVLW  02
+077E:  MOVWF  75
+0780:  RCALL  063C
+....................                                            break; 
+0782:  BRA    07A6
+....................      case '\n'   : lcd_gotoxy(1,2);        break; 
+0784:  MOVLW  01
+0786:  MOVWF  75
+0788:  MOVLW  02
+078A:  MOVWF  76
+078C:  RCALL  0742
+078E:  BRA    07A6
+....................      case '\b'   : lcd_send_byte(0,0x10);  break; 
+0790:  CLRF   79
+0792:  MOVLW  10
+0794:  MOVWF  7A
+0796:  RCALL  06B4
+0798:  BRA    07A6
+....................      default     : lcd_send_byte(1,c);     break; 
+079A:  MOVLW  01
+079C:  MOVWF  79
+079E:  MOVFF  74,7A
+07A2:  RCALL  06B4
+07A4:  BRA    07A6
+....................    } 
+.................... } 
+07A6:  RETLW  00
+....................  
+.................... char lcd_getc( BYTE x, BYTE y) { 
+....................    char value; 
+....................  
+....................     lcd_gotoxy(x,y); 
+....................     while ( bit_test(lcd_read_byte(),7) ); // wait until busy flag is low 
+....................     lcd.rs=1; 
+....................     value = lcd_read_byte(); 
+....................     lcd.rs=0; 
+....................     return(value); 
+.................... } 
+....................  
+.................... void lcd_clear() { 
+.................... 	lcd_gotoxy (1,1); 
+07A8:  MOVLW  01
+07AA:  MOVWF  75
+07AC:  MOVWF  76
+07AE:  RCALL  0742
+.................... 	lcd_putc("                "); 
+07B0:  CLRF   66
+07B2:  MOVF   66,W
+07B4:  RCALL  00BC
+07B6:  IORLW  00
+07B8:  BZ    07C2
+07BA:  INCF   66,F
+07BC:  MOVWF  74
+07BE:  RCALL  0764
+07C0:  BRA    07B2
+.................... 	lcd_gotoxy(1,2); 
+07C2:  MOVLW  01
+07C4:  MOVWF  75
+07C6:  MOVLW  02
+07C8:  MOVWF  76
+07CA:  RCALL  0742
+.................... 	lcd_putc("                "); 
+07CC:  CLRF   66
+07CE:  MOVF   66,W
+07D0:  RCALL  00BC
+07D2:  IORLW  00
+07D4:  BZ    07DE
+07D6:  INCF   66,F
+07D8:  MOVWF  74
+07DA:  RCALL  0764
+07DC:  BRA    07CE
+.................... 	lcd_gotoxy (1,1); 
+07DE:  MOVLW  01
+07E0:  MOVWF  75
+07E2:  MOVWF  76
+07E4:  RCALL  0742
+.................... } 
+07E6:  RETLW  00
+....................  
+.................... #include <Transicao.h> 
+.................... /*=============================================================================================================================================== 
+.................... DECLARA«√O DAS VARI¡ÅVEIS 
+.................... ===============================================================================================================================================*/ 
+.................... //STATIC		SINAL		TIPO	VARI¡ÅVEL				VALOR INICIAL		COMENT¡RIO 
+.................... //----------------------------------------------------------------------------------------------------------------------------------------------- 
+.................... 							boolean	MX_PLSP_AUX				=0;					//Vari·vel auxiliar para funÁ„o plsp 
+.................... 							boolean	MX_PLSP_OUT				=0;					//Vari·vel de saida para funÁ„o plsp 
+....................  
+.................... 	 
+.................... /*=============================================================================================================================================== 
+.................... FLANCO POSITIVO 
+.................... ===============================================================================================================================================*/ 
+.................... //Esta funÁ„o verifica a transiÁ„o positiva de um bit 
+.................... plsp(in) 
+.................... { 
+.................... 	if(in)							//Verifica se a entrada foi acionada 
+07E8:  MOVF   67,F
+07EA:  BZ    07FA
+.................... 	{ 
+.................... 		if(!MX_PLSP_AUX)			//Verifica se j· estava acionada na ultima verificaÁ„o 
+07EC:  BTFSC  18.0
+07EE:  BRA    07F6
+.................... 		{ 
+.................... 			MX_PLSP_OUT=TRUE;		//Se n„o, aciona saÌda e marcador auxiliar 
+07F0:  BSF    18.1
+.................... 			MX_PLSP_AUX=TRUE;		// 
+07F2:  BSF    18.0
+.................... 		} 
+.................... 		else MX_PLSP_OUT=FALSE;		//Se sim, desliga saÌda 
+07F4:  BRA    07F8
+07F6:  BCF    18.1
+.................... 	} 
+.................... 	else 
+07F8:  BRA    07FE
+.................... 	{ 
+.................... 		MX_PLSP_OUT=FALSE;			//Se entrada n„o esta acionada, reseta saida e marcador auxiliar 
+07FA:  BCF    18.1
+.................... 		MX_PLSP_AUX=FALSE;			// 
+07FC:  BCF    18.0
+.................... 	} 
+.................... 	return(MX_PLSP_OUT);			//Retorna valor 
+07FE:  MOVLW  00
+0800:  BTFSC  18.1
+0802:  MOVLW  01
+0804:  MOVWF  01
+.................... } 
+0806:  GOTO   0F2C (RETURN)
+....................  
+.................... #include <Teclado_matricial.h> 
+.................... /*=============================================================================================================================================== 
+.................... DECLARA«√O DAS VARI¡ÅVEIS 
+.................... ===============================================================================================================================================*/ 
+.................... //STATIC		SINAL		TIPO	VARI¡ÅVEL				VALOR INICIAL		COMENT¡ÅRIO 
+.................... //----------------------------------------------------------------------------------------------------------------------------------------------- 
+.................... 							boolean	teclado3x4_on			=0;					//Indica que existe tecla pressionada no teclado 3x4 
+.................... 							 
+.................... 				unsigned	int32	MWL_OUT					=0;					//SaÌda da funÁ„o de leitura da entrada de valor 
+.................... 				unsigned	int32	MBL_DG1					=0;					//Vari·vel para armazenamento do primeiro digito (LSB) 
+.................... 				unsigned	int32	MBL_DG2					=0;					//Vari·vel para armazenamento do segundo digito 
+.................... 				unsigned	int32	MBL_DG3					=0;					//Vari·vel para armazenamento do terceiro digito 
+.................... 				unsigned	int32	MBL_DG4					=0;					//Vari·vel para armazenamento do quarto digito 
+.................... 				unsigned	int32	MBL_DG5					=0;					//Vari·vel para armazenamento do quinto digito (MSB) 
+....................  
+....................  
+.................... /*=============================================================================================================================================== 
+.................... TECLADO 3X4 
+.................... ===============================================================================================================================================*/ 
+.................... //SCAN 
+.................... //Esta funÁao retorna o valor da tecla pressionada em um teclado matricial 3x4 
+.................... teclado3x4_scan() 
+.................... { 
+.................... 		#define CL1	PIN_C0 
+.................... 		#define CL2	PIN_C1 
+.................... 		#define CL3	PIN_C2 
+.................... 		#define LN1	PIN_C3 
+.................... 		#define LN2	PIN_C4 
+.................... 		#define LN3	PIN_C5 
+.................... 		#define LN4	PIN_C6		 
+....................  
+.................... //Executa varredura da primeira coluna	 
+.................... 	output_high(CL1); 
+080A:  BCF    F94.0
+080C:  BSF    F8B.0
+.................... 	output_low(CL2); 
+080E:  BCF    F94.1
+0810:  BCF    F8B.1
+.................... 	output_low(CL3); 
+0812:  BCF    F94.2
+0814:  BCF    F8B.2
+.................... 	if(input(LN1))  
+0816:  BSF    F94.3
+0818:  BTFSS  F82.3
+081A:  BRA    0824
+.................... 	{ 
+.................... 		teclado3x4_on=TRUE; 
+081C:  BSF    18.2
+.................... 		return(1); 
+081E:  MOVLW  01
+0820:  MOVWF  01
+0822:  BRA    08CE
+.................... 	}	 
+.................... 	if(input(LN2)) 
+0824:  BSF    F94.4
+0826:  BTFSS  F82.4
+0828:  BRA    0832
+.................... 	{ 
+.................... 		teclado3x4_on=TRUE; 
+082A:  BSF    18.2
+.................... 		return(4); 
+082C:  MOVLW  04
+082E:  MOVWF  01
+0830:  BRA    08CE
+.................... 	}	 
+.................... 	if(input(LN3)) 
+0832:  BSF    F94.5
+0834:  BTFSS  F82.5
+0836:  BRA    0840
+.................... 	{ 
+.................... 		teclado3x4_on=TRUE; 
+0838:  BSF    18.2
+.................... 		return(7); 
+083A:  MOVLW  07
+083C:  MOVWF  01
+083E:  BRA    08CE
+.................... 	}	 
+.................... //Executa varredura da segunda coluna 
+.................... 	output_low(CL1); 
+0840:  BCF    F94.0
+0842:  BCF    F8B.0
+.................... 	output_high(CL2); 
+0844:  BCF    F94.1
+0846:  BSF    F8B.1
+.................... 	output_low(CL3); 
+0848:  BCF    F94.2
+084A:  BCF    F8B.2
+.................... 	if(input(LN1)) 
+084C:  BSF    F94.3
+084E:  BTFSS  F82.3
+0850:  BRA    085A
+.................... 	{ 
+.................... 		teclado3x4_on=TRUE; 
+0852:  BSF    18.2
+.................... 		return(2); 
+0854:  MOVLW  02
+0856:  MOVWF  01
+0858:  BRA    08CE
+.................... 	}	 
+.................... 	if(input(LN2)) 
+085A:  BSF    F94.4
+085C:  BTFSS  F82.4
+085E:  BRA    0868
+.................... 	{ 
+.................... 		teclado3x4_on=TRUE; 
+0860:  BSF    18.2
+.................... 		return(5); 
+0862:  MOVLW  05
+0864:  MOVWF  01
+0866:  BRA    08CE
+.................... 	}	 
+.................... 	if(input(LN3)) 
+0868:  BSF    F94.5
+086A:  BTFSS  F82.5
+086C:  BRA    0876
+.................... 	{ 
+.................... 		teclado3x4_on=TRUE; 
+086E:  BSF    18.2
+.................... 		return(8); 
+0870:  MOVLW  08
+0872:  MOVWF  01
+0874:  BRA    08CE
+.................... 	}	 
+.................... 	if(input(LN4)) 
+0876:  BSF    F94.6
+0878:  BTFSS  F82.6
+087A:  BRA    0884
+.................... 	{ 
+.................... 		teclado3x4_on=TRUE; 
+087C:  BSF    18.2
+.................... 		return(0); 
+087E:  MOVLW  00
+0880:  MOVWF  01
+0882:  BRA    08CE
+.................... 	}	 
+.................... //Executa varredura da terceira coluna	 
+.................... 	output_low(CL1); 
+0884:  BCF    F94.0
+0886:  BCF    F8B.0
+.................... 	output_low(CL2); 
+0888:  BCF    F94.1
+088A:  BCF    F8B.1
+.................... 	output_high(CL3); 
+088C:  BCF    F94.2
+088E:  BSF    F8B.2
+.................... 	if(input(LN1)) 
+0890:  BSF    F94.3
+0892:  BTFSS  F82.3
+0894:  BRA    089E
+.................... 	{ 
+.................... 		teclado3x4_on=TRUE; 
+0896:  BSF    18.2
+.................... 		return(3); 
+0898:  MOVLW  03
+089A:  MOVWF  01
+089C:  BRA    08CE
+.................... 	}	 
+.................... 	if(input(LN2)) 
+089E:  BSF    F94.4
+08A0:  BTFSS  F82.4
+08A2:  BRA    08AC
+.................... 	{ 
+.................... 		teclado3x4_on=TRUE; 
+08A4:  BSF    18.2
+.................... 		return(6); 
+08A6:  MOVLW  06
+08A8:  MOVWF  01
+08AA:  BRA    08CE
+.................... 	}	 
+.................... 	if(input(LN3)) 
+08AC:  BSF    F94.5
+08AE:  BTFSS  F82.5
+08B0:  BRA    08BA
+.................... 	{ 
+.................... 		teclado3x4_on=TRUE; 
+08B2:  BSF    18.2
+.................... 		return(9); 
+08B4:  MOVLW  09
+08B6:  MOVWF  01
+08B8:  BRA    08CE
+.................... 	} 
+.................... 	output_low(CL1); 
+08BA:  BCF    F94.0
+08BC:  BCF    F8B.0
+.................... 	output_low(CL2); 
+08BE:  BCF    F94.1
+08C0:  BCF    F8B.1
+.................... 	output_low(CL3);	 
+08C2:  BCF    F94.2
+08C4:  BCF    F8B.2
+.................... 	return(10); 
+08C6:  MOVLW  0A
+08C8:  MOVWF  01
+08CA:  BRA    08CE
+.................... 	 
+.................... 	teclado3x4_on=FALSE;		//Reseta indicaÁ„o de que existe tecla pressionada 
+08CC:  BCF    18.2
+.................... } 
+08CE:  RETLW  00
+....................  
+.................... int32 teclado_3x4_valor(tecla,int32 valor, casas) 
+.................... { 
+.................... 	MWL_OUT=valor;	//Iguala a saÌda da funÁ„o ao valor da entrada para evitar transferencia de dados entre vari·veis por lixo na saÌda 
+*
+0ADE:  MOVFF  6A,1C
+0AE2:  MOVFF  69,1B
+0AE6:  MOVFF  68,1A
+0AEA:  MOVFF  67,19
+.................... 	if(tecla<10) 
+0AEE:  MOVF   66,W
+0AF0:  SUBLW  09
+0AF2:  BTFSS  FD8.0
+0AF4:  BRA    0DF2
+.................... 		{ 
+.................... 			MBL_DG5=valor/10000;		//Separa valor atual em digitos 
+0AF6:  MOVFF  6A,77
+0AFA:  MOVFF  69,76
+0AFE:  MOVFF  68,75
+0B02:  MOVFF  67,74
+0B06:  CLRF   7B
+0B08:  CLRF   7A
+0B0A:  MOVLW  27
+0B0C:  MOVWF  79
+0B0E:  MOVLW  10
+0B10:  MOVWF  78
+0B12:  RCALL  0A10
+0B14:  MOVFF  03,30
+0B18:  MOVFF  02,2F
+0B1C:  MOVFF  01,2E
+0B20:  MOVFF  00,2D
+.................... 			MBL_DG4=(valor%10000)/1000;	// 
+0B24:  MOVFF  6A,77
+0B28:  MOVFF  69,76
+0B2C:  MOVFF  68,75
+0B30:  MOVFF  67,74
+0B34:  CLRF   7B
+0B36:  CLRF   7A
+0B38:  MOVLW  27
+0B3A:  MOVWF  79
+0B3C:  MOVLW  10
+0B3E:  MOVWF  78
+0B40:  RCALL  0A10
+0B42:  MOVFF  FEF,6C
+0B46:  MOVFF  FEC,6D
+0B4A:  MOVFF  FEC,6E
+0B4E:  MOVFF  FEC,6F
+0B52:  MOVFF  FEA,71
+0B56:  MOVFF  FE9,70
+0B5A:  MOVFF  6F,77
+0B5E:  MOVFF  6E,76
+0B62:  MOVFF  6D,75
+0B66:  MOVFF  6C,74
+0B6A:  CLRF   7B
+0B6C:  CLRF   7A
+0B6E:  MOVLW  03
+0B70:  MOVWF  79
+0B72:  MOVLW  E8
+0B74:  MOVWF  78
+0B76:  RCALL  0A10
+0B78:  MOVFF  71,FEA
+0B7C:  MOVFF  70,FE9
+0B80:  MOVFF  03,2C
+0B84:  MOVFF  02,2B
+0B88:  MOVFF  01,2A
+0B8C:  MOVFF  00,29
+.................... 			MBL_DG3=(valor%1000)/100;	// 
+0B90:  MOVFF  6A,77
+0B94:  MOVFF  69,76
+0B98:  MOVFF  68,75
+0B9C:  MOVFF  67,74
+0BA0:  CLRF   7B
+0BA2:  CLRF   7A
+0BA4:  MOVLW  03
+0BA6:  MOVWF  79
+0BA8:  MOVLW  E8
+0BAA:  MOVWF  78
+0BAC:  RCALL  0A10
+0BAE:  MOVFF  FEF,6C
+0BB2:  MOVFF  FEC,6D
+0BB6:  MOVFF  FEC,6E
+0BBA:  MOVFF  FEC,6F
+0BBE:  MOVFF  FEA,71
+0BC2:  MOVFF  FE9,70
+0BC6:  MOVFF  6F,77
+0BCA:  MOVFF  6E,76
+0BCE:  MOVFF  6D,75
+0BD2:  MOVFF  6C,74
+0BD6:  CLRF   7B
+0BD8:  CLRF   7A
+0BDA:  CLRF   79
+0BDC:  MOVLW  64
+0BDE:  MOVWF  78
+0BE0:  RCALL  0A10
+0BE2:  MOVFF  71,FEA
+0BE6:  MOVFF  70,FE9
+0BEA:  MOVFF  03,28
+0BEE:  MOVFF  02,27
+0BF2:  MOVFF  01,26
+0BF6:  MOVFF  00,25
+.................... 			MBL_DG2=(valor%100)/10;		// 
+0BFA:  MOVFF  6A,77
+0BFE:  MOVFF  69,76
+0C02:  MOVFF  68,75
+0C06:  MOVFF  67,74
+0C0A:  CLRF   7B
+0C0C:  CLRF   7A
+0C0E:  CLRF   79
+0C10:  MOVLW  64
+0C12:  MOVWF  78
+0C14:  RCALL  0A10
+0C16:  MOVFF  FEF,6C
+0C1A:  MOVFF  FEC,6D
+0C1E:  MOVFF  FEC,6E
+0C22:  MOVFF  FEC,6F
+0C26:  MOVFF  FEA,71
+0C2A:  MOVFF  FE9,70
+0C2E:  MOVFF  6F,77
+0C32:  MOVFF  6E,76
+0C36:  MOVFF  6D,75
+0C3A:  MOVFF  6C,74
+0C3E:  CLRF   7B
+0C40:  CLRF   7A
+0C42:  CLRF   79
+0C44:  MOVLW  0A
+0C46:  MOVWF  78
+0C48:  RCALL  0A10
+0C4A:  MOVFF  71,FEA
+0C4E:  MOVFF  70,FE9
+0C52:  MOVFF  03,24
+0C56:  MOVFF  02,23
+0C5A:  MOVFF  01,22
+0C5E:  MOVFF  00,21
+.................... 			MBL_DG1=valor%10;			// 
+0C62:  MOVFF  6A,77
+0C66:  MOVFF  69,76
+0C6A:  MOVFF  68,75
+0C6E:  MOVFF  67,74
+0C72:  CLRF   7B
+0C74:  CLRF   7A
+0C76:  CLRF   79
+0C78:  MOVLW  0A
+0C7A:  MOVWF  78
+0C7C:  RCALL  0A10
+0C7E:  MOVFF  FEF,1D
+0C82:  MOVFF  FEC,1E
+0C86:  MOVFF  FEC,1F
+0C8A:  MOVFF  FEC,20
+.................... 		 
+.................... 			MBL_DG5=MBL_DG4;			//Rotaciona digitos do valor atual 
+0C8E:  MOVFF  2C,30
+0C92:  MOVFF  2B,2F
+0C96:  MOVFF  2A,2E
+0C9A:  MOVFF  29,2D
+.................... 			MBL_DG4=MBL_DG3;			// 
+0C9E:  MOVFF  28,2C
+0CA2:  MOVFF  27,2B
+0CA6:  MOVFF  26,2A
+0CAA:  MOVFF  25,29
+.................... 			MBL_DG3=MBL_DG2;			// 
+0CAE:  MOVFF  24,28
+0CB2:  MOVFF  23,27
+0CB6:  MOVFF  22,26
+0CBA:  MOVFF  21,25
+.................... 			MBL_DG2=MBL_DG1;			// 
+0CBE:  MOVFF  20,24
+0CC2:  MOVFF  1F,23
+0CC6:  MOVFF  1E,22
+0CCA:  MOVFF  1D,21
+.................... 			MBL_DG1=tecla;				//Insere valor do scan do teclado como digito 1 (LSB) 
+0CCE:  CLRF   20
+0CD0:  CLRF   1F
+0CD2:  CLRF   1E
+0CD4:  MOVFF  66,1D
+.................... 			 
+.................... 			switch(casas)				//Zera casas n„o desejadas 
+.................... 			{ 
+0CD8:  MOVLW  01
+0CDA:  SUBWF  6B,W
+0CDC:  ADDLW  FC
+0CDE:  BC    0D36
+0CE0:  ADDLW  04
+0CE2:  GOTO   0E04
+.................... 				case 1: 
+.................... 				MBL_DG5=0; 
+0CE6:  CLRF   30
+0CE8:  CLRF   2F
+0CEA:  CLRF   2E
+0CEC:  CLRF   2D
+.................... 				MBL_DG4=0; 
+0CEE:  CLRF   2C
+0CF0:  CLRF   2B
+0CF2:  CLRF   2A
+0CF4:  CLRF   29
+.................... 				MBL_DG3=0; 
+0CF6:  CLRF   28
+0CF8:  CLRF   27
+0CFA:  CLRF   26
+0CFC:  CLRF   25
+.................... 				MBL_DG2=0; 
+0CFE:  CLRF   24
+0D00:  CLRF   23
+0D02:  CLRF   22
+0D04:  CLRF   21
+.................... 				 
+.................... 				case 2: 
+.................... 				MBL_DG5=0; 
+0D06:  CLRF   30
+0D08:  CLRF   2F
+0D0A:  CLRF   2E
+0D0C:  CLRF   2D
+.................... 				MBL_DG4=0; 
+0D0E:  CLRF   2C
+0D10:  CLRF   2B
+0D12:  CLRF   2A
+0D14:  CLRF   29
+.................... 				MBL_DG3=0; 
+0D16:  CLRF   28
+0D18:  CLRF   27
+0D1A:  CLRF   26
+0D1C:  CLRF   25
+.................... 				 
+.................... 				case 3: 
+.................... 				MBL_DG5=0; 
+0D1E:  CLRF   30
+0D20:  CLRF   2F
+0D22:  CLRF   2E
+0D24:  CLRF   2D
+.................... 				MBL_DG4=0; 
+0D26:  CLRF   2C
+0D28:  CLRF   2B
+0D2A:  CLRF   2A
+0D2C:  CLRF   29
+.................... 				 
+.................... 				case 4: 
+.................... 				MBL_DG5=0; 
+0D2E:  CLRF   30
+0D30:  CLRF   2F
+0D32:  CLRF   2E
+0D34:  CLRF   2D
+.................... 			} 
+.................... 			 
+.................... 			MWL_OUT=MBL_DG1+(MBL_DG2*10);		//Une digitos em uma unica vari·vel 
+0D36:  MOVFF  24,6F
+0D3A:  MOVFF  23,6E
+0D3E:  MOVFF  22,6D
+0D42:  MOVFF  21,6C
+0D46:  CLRF   73
+0D48:  CLRF   72
+0D4A:  CLRF   71
+0D4C:  MOVLW  0A
+0D4E:  MOVWF  70
+0D50:  RCALL  0A8A
+0D52:  MOVF   00,W
+0D54:  ADDWF  1D,W
+0D56:  MOVWF  19
+0D58:  MOVF   01,W
+0D5A:  ADDWFC 1E,W
+0D5C:  MOVWF  1A
+0D5E:  MOVF   02,W
+0D60:  ADDWFC 1F,W
+0D62:  MOVWF  1B
+0D64:  MOVF   03,W
+0D66:  ADDWFC 20,W
+0D68:  MOVWF  1C
+.................... 			MWL_OUT=MWL_OUT+(MBL_DG3*100);		// 
+0D6A:  MOVFF  28,6F
+0D6E:  MOVFF  27,6E
+0D72:  MOVFF  26,6D
+0D76:  MOVFF  25,6C
+0D7A:  CLRF   73
+0D7C:  CLRF   72
+0D7E:  CLRF   71
+0D80:  MOVLW  64
+0D82:  MOVWF  70
+0D84:  RCALL  0A8A
+0D86:  MOVF   00,W
+0D88:  ADDWF  19,F
+0D8A:  MOVF   01,W
+0D8C:  ADDWFC 1A,F
+0D8E:  MOVF   02,W
+0D90:  ADDWFC 1B,F
+0D92:  MOVF   03,W
+0D94:  ADDWFC 1C,F
+.................... 			MWL_OUT=MWL_OUT+(MBL_DG4*1000);		// 
+0D96:  MOVFF  2C,6F
+0D9A:  MOVFF  2B,6E
+0D9E:  MOVFF  2A,6D
+0DA2:  MOVFF  29,6C
+0DA6:  CLRF   73
+0DA8:  CLRF   72
+0DAA:  MOVLW  03
+0DAC:  MOVWF  71
+0DAE:  MOVLW  E8
+0DB0:  MOVWF  70
+0DB2:  RCALL  0A8A
+0DB4:  MOVF   00,W
+0DB6:  ADDWF  19,F
+0DB8:  MOVF   01,W
+0DBA:  ADDWFC 1A,F
+0DBC:  MOVF   02,W
+0DBE:  ADDWFC 1B,F
+0DC0:  MOVF   03,W
+0DC2:  ADDWFC 1C,F
+.................... 			MWL_OUT=MWL_OUT+(MBL_DG5*10000);	// 
+0DC4:  MOVFF  30,6F
+0DC8:  MOVFF  2F,6E
+0DCC:  MOVFF  2E,6D
+0DD0:  MOVFF  2D,6C
+0DD4:  CLRF   73
+0DD6:  CLRF   72
+0DD8:  MOVLW  27
+0DDA:  MOVWF  71
+0DDC:  MOVLW  10
+0DDE:  MOVWF  70
+0DE0:  RCALL  0A8A
+0DE2:  MOVF   00,W
+0DE4:  ADDWF  19,F
+0DE6:  MOVF   01,W
+0DE8:  ADDWFC 1A,F
+0DEA:  MOVF   02,W
+0DEC:  ADDWFC 1B,F
+0DEE:  MOVF   03,W
+0DF0:  ADDWFC 1C,F
+.................... 		} 
+.................... 	return(MWL_OUT);	 
+0DF2:  MOVFF  19,00
+0DF6:  MOVFF  1A,01
+0DFA:  MOVFF  1B,02
+0DFE:  MOVFF  1C,03
+.................... }	 
+0E02:  RETLW  00
+....................  
+.................... #include <eeprom.h> 
+.................... /*=============================================================================================================================================== 
+.................... DECLARA«√O DAS VARI¡ÅVEIS 
+.................... ===============================================================================================================================================*/ 
+.................... //STATIC		SINAL		TIPO	VARI¡ÅVEL				VALOR INICIAL		COMENT¡RIO 
+.................... //----------------------------------------------------------------------------------------------------------------------------------------------- 
+....................  
+....................  
+.................... /*=============================================================================================================================================== 
+.................... SALVAR WORD NA EEPROM 
+.................... ===============================================================================================================================================*/ 
+.................... void write_eeprom_word(endereco,int16 valor) 
+.................... { 
+.................... 	write_eeprom(endereco, valor/256);		//Salva parte alta na eeprom (o quociente da divis„o por 256 retorna a parte alta da word) 
+*
+19E4:  MOVFF  68,69
+19E8:  CLRF   6A
+19EA:  MOVFF  66,FA9
+19EE:  MOVFF  68,FA8
+19F2:  BCF    FA6.6
+19F4:  BCF    FA6.7
+19F6:  BSF    FA6.2
+19F8:  MOVFF  FF2,00
+19FC:  BCF    FF2.7
+19FE:  MOVLB  F
+1A00:  MOVLW  55
+1A02:  MOVWF  FA7
+1A04:  MOVLW  AA
+1A06:  MOVWF  FA7
+1A08:  BSF    FA6.1
+1A0A:  BTFSC  FA6.1
+1A0C:  BRA    1A0A
+1A0E:  BCF    FA6.2
+1A10:  MOVF   00,W
+1A12:  IORWF  FF2,F
+.................... 	write_eeprom(endereco+1, valor%256);	//Salva parte baixa na eeprom (o resto da divis„o por 256 retorna a parte baixa da word) 
+1A14:  MOVLW  01
+1A16:  ADDWF  66,W
+1A18:  MOVWF  69
+1A1A:  MOVFF  67,6A
+1A1E:  CLRF   6B
+1A20:  MOVWF  FA9
+1A22:  MOVFF  67,FA8
+1A26:  BCF    FA6.6
+1A28:  BCF    FA6.7
+1A2A:  BSF    FA6.2
+1A2C:  MOVFF  FF2,00
+1A30:  BCF    FF2.7
+1A32:  MOVLW  55
+1A34:  MOVWF  FA7
+1A36:  MOVLW  AA
+1A38:  MOVWF  FA7
+1A3A:  BSF    FA6.1
+1A3C:  BTFSC  FA6.1
+1A3E:  BRA    1A3C
+1A40:  BCF    FA6.2
+1A42:  MOVF   00,W
+1A44:  IORWF  FF2,F
+.................... 	 
+.................... 	return; 
+.................... }			 
+1A46:  MOVLB  0
+1A48:  RETLW  00
+....................  
+.................... /*=============================================================================================================================================== 
+.................... LER WORD DA EEPROM 
+.................... ===============================================================================================================================================*/ 
+.................... int16 read_eeprom_word(endereco) 
+.................... { 
+.................... 	return(read_eeprom(endereco)*256+read_eeprom(endereco+1));	//Para retornar o valor de uma word da eeprom (2 bytes consecutivos, le-se a parte alta 
+*
+05DE:  MOVFF  FF2,67
+05E2:  BCF    FF2.7
+05E4:  MOVFF  66,FA9
+05E8:  BCF    FA6.6
+05EA:  BCF    FA6.7
+05EC:  BSF    FA6.0
+05EE:  MOVF   FA8,W
+05F0:  BTFSC  67.7
+05F2:  BSF    FF2.7
+05F4:  MOVWF  69
+05F6:  CLRF   6B
+05F8:  MOVFF  69,6A
+05FC:  MOVLW  01
+05FE:  MOVWF  6D
+0600:  CLRF   6C
+0602:  BRA    05BE
+0604:  MOVFF  02,6B
+0608:  MOVFF  01,6A
+060C:  MOVLW  01
+060E:  ADDWF  66,W
+0610:  MOVWF  6C
+0612:  MOVFF  FF2,6D
+0616:  BCF    FF2.7
+0618:  MOVFF  6C,FA9
+061C:  BCF    FA6.6
+061E:  BCF    FA6.7
+0620:  BSF    FA6.0
+0622:  MOVF   FA8,W
+0624:  BTFSC  6D.7
+0626:  BSF    FF2.7
+0628:  ADDWF  6A,W
+062A:  MOVWF  01
+062C:  MOVLW  00
+062E:  ADDWFC 6B,W
+0630:  MOVWF  03
+0632:  MOVF   01,W
+0634:  MOVWF  01
+0636:  MOVF   03,W
+0638:  MOVWF  02
+.................... 													//multiplica-se por 256 e ent„o soma-se a parte baixa 
+.................... } 
+063A:  RETLW  00
+....................  
+....................  
+.................... /*=============================================================================================================================================== 
+.................... DECLARA«√O DAS VARI¡VEIS 
+.................... ===============================================================================================================================================*/ 
+.................... //STATIC		SINAL		TIPO	VARI¡VEL				VALOR INICIAL	E≤PROM		COMENT¡RIO 
+.................... //----------------------------------------------------------------------------------------------------------------------------------------------- 
+.................... 				unsigned	int16	MW_SCREEN				=0;						//N˙mero da tela a ser exibida 
+.................... 				unsigned	int16	MW_SCREEN_AUX			=0;						//Auxiliar 
+.................... 				unsigned	int8	MB_RECEITA				=0;						//N˙mero da receita a ser executada 
+.................... 				unsigned	int8	MB_RECEITA_ED			=0;						//N˙mero da receita a ser editada 
+.................... 				unsigned	int8	MB_ESTAGIO				=0;						//Etapa atual do processo 
+.................... 				unsigned	int16	MW_AGUA_EF				=0;						//Quantidade de ·gua dosada 
+.................... 				unsigned	int8	MB_TEOR_AT				=0;						//Teor atual 
+.................... 				unsigned	int16	TON_IHM_ATUALIZA		=0;						//Temporizador para atualizaÁ„o da IHM 
+.................... 				unsigned	int8	MB_TECLA_PRESS			=0;						//Tecla pressionada no teclado 
+.................... 				unsigned	int8	MB_TECLA_PRESS_AUX		=0; 
+.................... 							boolean	MX_PLSP_NXT				=0;						//Flanco positivo do bot„o next 
+.................... //Parametros da receita--------------------------------------------------------------------------------------------------------------------------			 
+.................... 				unsigned	int8	MB_TEOR_SP				=0;						//Teor desejado 
+.................... 				unsigned	int16	MW_T_HOMO_INI_SP		=0;						//Tempo de homogeneizaÁ„o inicial 
+.................... 				unsigned	int16	MW_TEOR_APROX_SP		=0;						//Teor de aproximaÁ„o 
+.................... 				unsigned	int16	MW_TON_SP				=0;						//Tempo de valvula ligada 
+.................... 				unsigned	int16	MW_TOF_SP				=0;						//Tempo de v·lvula desligada 
+.................... 				unsigned	int16	MW_T_HOMO_SP			=0;						//Tempo de homogeneizaÁ„o 
+.................... 				unsigned	int16	MW_TON_FINO_SP			=0;						//Tempo de valvula ligada ajuste fino 
+.................... 				unsigned	int16	MW_TOF_FINO_SP			=0;						//Tempo de v·lvula desligada ajuste fino 
+.................... //Parametros------------------------------------------------------------------------------------------------------------------------------------- 
+.................... 				unsigned	int16	MW_GANHO				=0;				//000	Ganho do sensor 
+.................... 				unsigned	int16	MW_GANHO_AUX			=0;				//		Auxiliar para verificar alteraÁ„o 
+.................... 				unsigned	int16	MW_OFFSET				=0;				//002	Offset do sensor 
+.................... 				unsigned	int16	MW_OFFSET_AUX			=0;				//		Auxiliar para verificar alteraÁ„o 
+.................... 				unsigned	int16	MW_HIDR_REL				=0;				//004	RelaÁao de pulsos por litro do hidrometro 
+.................... 				unsigned	int16	MW_HIDR_REL_AUX			=0;				//		Auxiliar para verificar alteraÁ„o 
+.................... 				unsigned	int16	MW_METODO_LEITURA		=0;				//006	Metodo de leitura do sensor 
+.................... 				unsigned	int16	MW_METODO_LEITURA_AUX	=0;				//		Auxiliar para verificar alteraÁ„o 
+.................... 				unsigned	int16	MW_T_AMOSTRA			=0;				//008	Intervalo de amostragem 
+.................... 				unsigned	int16	MW_T_AMOSTRA_AUX		=0;				//		Auxiliar para verificar alteraÁ„o 
+.................... 				unsigned	int16	MW_FATOR_MEDIA			=0;				//010	Fator da media ponderada 
+.................... 				unsigned	int16	MW_FATOR_MEDIA_AUX		=0;				//		Auxiliar para verificar alteraÁ„o 
+.................... 				 
+.................... /*=============================================================================================================================================== 
+.................... INTERRUP«’ES 
+.................... ===============================================================================================================================================*/ 
+.................... //TIMER 0 - Esta interrupÁ„o ser· executada conforme ajustado no setup_timer_0 
+.................... #int_timer0 
+.................... void timer_zero() 
+.................... { 
+.................... 	set_timer0(15536);		//Seta Timer 0 em 15536 para que ocorra apenas 50000 contagens atÈ a proxima interrupÁ„o que ocorre em 65536 
+*
+05AA:  MOVLW  3C
+05AC:  MOVWF  FD7
+05AE:  MOVLW  B0
+05B0:  MOVWF  FD6
+.................... 							//fazendo com que decorra 0,1s 
+.................... 	 
+.................... 	TON_IHM_ATUALIZA++;		//Incrementa temporizador para atualizaÁ„o da IHM 
+05B2:  INCF   3B,F
+05B4:  BTFSC  FD8.2
+05B6:  INCF   3C,F
+.................... } 
+.................... /*=============================================================================================================================================== 
+.................... FUN«’ES 
+.................... ===============================================================================================================================================*/ 
+....................  
+....................  
+.................... /*=============================================================================================================================================== 
+.................... SUBROTINAS 
+.................... ===============================================================================================================================================*/ 
+.................... //ATUALIZA LCD DE ACORDO COM O NUMERO DA TELA QUE DEVE SER EXIBIDA 
+05B8:  BCF    FF2.2
+05BA:  GOTO   0058
+.................... void IHM() 
+.................... { 
+.................... 	if(input(IX_BTN_OP))	MW_SCREEN=1;	//ACESSO AOS MENUS PRINCIPAIS 
+*
+0EFC:  BSF    F95.0
+0EFE:  BTFSS  F83.0
+0F00:  BRA    0F08
+0F02:  CLRF   32
+0F04:  MOVLW  01
+0F06:  MOVWF  31
+.................... 	if(input(IX_BTN_REC))	MW_SCREEN=11;	// 
+0F08:  BSF    F95.1
+0F0A:  BTFSS  F83.1
+0F0C:  BRA    0F14
+0F0E:  CLRF   32
+0F10:  MOVLW  0B
+0F12:  MOVWF  31
+.................... 	if(input(IX_BTN_PAR))	MW_SCREEN=101;	// 
+0F14:  BSF    F95.2
+0F16:  BTFSS  F83.2
+0F18:  BRA    0F20
+0F1A:  CLRF   32
+0F1C:  MOVLW  65
+0F1E:  MOVWF  31
+.................... 	 
+.................... 	MX_PLSP_NXT=plsp(input(IX_BTN_NXT));	//Verifica transiÁ„o positiva do bot„o next 
+0F20:  BSF    F95.3
+0F22:  MOVLW  00
+0F24:  BTFSC  F83.3
+0F26:  MOVLW  01
+0F28:  MOVWF  67
+0F2A:  BRA    07E8
+0F2C:  BCF    18.3
+0F2E:  BTFSC  01.0
+0F30:  BSF    18.3
+.................... 	 
+.................... 	MB_TECLA_PRESS=teclado3x4_scan();			//Move valor do scan do teclado para vari·vel utilizada no LCD 
+0F32:  RCALL  080A
+0F34:  MOVFF  01,3D
+.................... 	if(MB_TECLA_PRESS_AUX!=teclado3x4_scan())	//MantÈm o valor da tecla pressionada na variavel por 1 scan 
+0F38:  RCALL  080A
+0F3A:  MOVF   01,W
+0F3C:  SUBWF  3E,W
+0F3E:  BZ    0F48
+.................... 		MB_TECLA_PRESS_AUX=teclado3x4_scan();	// 
+0F40:  RCALL  080A
+0F42:  MOVFF  01,3E
+.................... 	else MB_TECLA_PRESS=10;						// 
+0F46:  BRA    0F4C
+0F48:  MOVLW  0A
+0F4A:  MOVWF  3D
+....................  
+.................... 	//EXIBI«√O DA TELA DESEJADA 
+.................... 	switch(MW_SCREEN) 
+.................... 	{ 
+0F4C:  MOVFF  31,00
+0F50:  MOVF   32,W
+0F52:  MOVWF  03
+0F54:  BNZ   0F5E
+0F56:  MOVLW  01
+0F58:  SUBWF  00,W
+0F5A:  BTFSC  FD8.2
+0F5C:  BRA    102A
+0F5E:  MOVF   03,W
+0F60:  BNZ   0F6A
+0F62:  MOVLW  0B
+0F64:  SUBWF  00,W
+0F66:  BTFSC  FD8.2
+0F68:  BRA    10D8
+0F6A:  MOVF   03,W
+0F6C:  BNZ   0F76
+0F6E:  MOVLW  0C
+0F70:  SUBWF  00,W
+0F72:  BTFSC  FD8.2
+0F74:  BRA    115A
+0F76:  MOVF   03,W
+0F78:  BNZ   0F82
+0F7A:  MOVLW  0D
+0F7C:  SUBWF  00,W
+0F7E:  BTFSC  FD8.2
+0F80:  BRA    11DC
+0F82:  MOVF   03,W
+0F84:  BNZ   0F8E
+0F86:  MOVLW  0E
+0F88:  SUBWF  00,W
+0F8A:  BTFSC  FD8.2
+0F8C:  BRA    126C
+0F8E:  MOVF   03,W
+0F90:  BNZ   0F9A
+0F92:  MOVLW  0F
+0F94:  SUBWF  00,W
+0F96:  BTFSC  FD8.2
+0F98:  BRA    1300
+0F9A:  MOVF   03,W
+0F9C:  BNZ   0FA6
+0F9E:  MOVLW  10
+0FA0:  SUBWF  00,W
+0FA2:  BTFSC  FD8.2
+0FA4:  BRA    139A
+0FA6:  MOVF   03,W
+0FA8:  BNZ   0FB2
+0FAA:  MOVLW  11
+0FAC:  SUBWF  00,W
+0FAE:  BTFSC  FD8.2
+0FB0:  BRA    142E
+0FB2:  MOVF   03,W
+0FB4:  BNZ   0FBE
+0FB6:  MOVLW  12
+0FB8:  SUBWF  00,W
+0FBA:  BTFSC  FD8.2
+0FBC:  BRA    14C2
+0FBE:  MOVF   03,W
+0FC0:  BNZ   0FCA
+0FC2:  MOVLW  13
+0FC4:  SUBWF  00,W
+0FC6:  BTFSC  FD8.2
+0FC8:  BRA    1546
+0FCA:  MOVF   03,W
+0FCC:  BNZ   0FD6
+0FCE:  MOVLW  14
+0FD0:  SUBWF  00,W
+0FD2:  BTFSC  FD8.2
+0FD4:  BRA    15DA
+0FD6:  MOVF   03,W
+0FD8:  BNZ   0FE2
+0FDA:  MOVLW  65
+0FDC:  SUBWF  00,W
+0FDE:  BTFSC  FD8.2
+0FE0:  BRA    166E
+0FE2:  MOVF   03,W
+0FE4:  BNZ   0FEE
+0FE6:  MOVLW  66
+0FE8:  SUBWF  00,W
+0FEA:  BTFSC  FD8.2
+0FEC:  BRA    16FA
+0FEE:  MOVF   03,W
+0FF0:  BNZ   0FFC
+0FF2:  MOVLW  67
+0FF4:  SUBWF  00,W
+0FF6:  BTFSC  FD8.2
+0FF8:  GOTO   1786
+0FFC:  MOVF   03,W
+0FFE:  BNZ   100A
+1000:  MOVLW  68
+1002:  SUBWF  00,W
+1004:  BTFSC  FD8.2
+1006:  GOTO   182C
+100A:  MOVF   03,W
+100C:  BNZ   1018
+100E:  MOVLW  69
+1010:  SUBWF  00,W
+1012:  BTFSC  FD8.2
+1014:  GOTO   18B8
+1018:  MOVF   03,W
+101A:  BNZ   1026
+101C:  MOVLW  6A
+101E:  SUBWF  00,W
+1020:  BTFSC  FD8.2
+1022:  GOTO   1954
+1026:  GOTO   19E0
+.................... 		case 1:								//EXIBE TELA DE OPERA«√O 
+.................... 		lcd_clear();						//Limpa LCD 
+102A:  CALL   07A8
+.................... 		lcd_gotoxy(1,1);					//Monta primeira linha 
+102E:  MOVLW  01
+1030:  MOVWF  75
+1032:  MOVWF  76
+1034:  CALL   0742
+.................... 		lcd_putc(" RC E VOL. TEOR");		// 
+1038:  CLRF   66
+103A:  MOVF   66,W
+103C:  CALL   00E8
+1040:  IORLW  00
+1042:  BZ    104E
+1044:  INCF   66,F
+1046:  MOVWF  74
+1048:  CALL   0764
+104C:  BRA    103A
+.................... 		lcd_gotoxy(2,2);					//Monta segunda linha 
+104E:  MOVLW  02
+1050:  MOVWF  75
+1052:  MOVWF  76
+1054:  CALL   0742
+.................... 		printf(lcd_putc, "%u",MB_RECEITA);	// 
+1058:  MOVFF  35,67
+105C:  MOVLW  1B
+105E:  MOVWF  68
+1060:  RCALL  08F8
+.................... 		lcd_gotoxy(5,2);					// 
+1062:  MOVLW  05
+1064:  MOVWF  75
+1066:  MOVLW  02
+1068:  MOVWF  76
+106A:  CALL   0742
+.................... 		printf(lcd_putc, "%u",MB_ESTAGIO);	// 
+106E:  MOVFF  37,67
+1072:  MOVLW  1B
+1074:  MOVWF  68
+1076:  RCALL  08F8
+.................... 		lcd_gotoxy(7,2);					// 
+1078:  MOVLW  07
+107A:  MOVWF  75
+107C:  MOVLW  02
+107E:  MOVWF  76
+1080:  CALL   0742
+.................... 		printf(lcd_putc, "%Lu",MW_AGUA_EF);	// 
+1084:  MOVLW  10
+1086:  MOVWF  FE9
+1088:  MOVFF  39,68
+108C:  MOVFF  38,67
+1090:  RCALL  095E
+.................... 		lcd_putc("l");						// 
+1092:  CLRF   66
+1094:  MOVF   66,W
+1096:  CALL   0112
+109A:  IORLW  00
+109C:  BZ    10A8
+109E:  INCF   66,F
+10A0:  MOVWF  74
+10A2:  CALL   0764
+10A6:  BRA    1094
+.................... 		lcd_gotoxy(12,2);					// 
+10A8:  MOVLW  0C
+10AA:  MOVWF  75
+10AC:  MOVLW  02
+10AE:  MOVWF  76
+10B0:  CALL   0742
+.................... 		printf(lcd_putc, "%u",MB_TEOR_AT);	// 
+10B4:  MOVFF  3A,67
+10B8:  MOVLW  1B
+10BA:  MOVWF  68
+10BC:  RCALL  08F8
+.................... 		lcd_putc("%");						// 
+10BE:  CLRF   66
+10C0:  MOVF   66,W
+10C2:  CALL   012E
+10C6:  IORLW  00
+10C8:  BZ    10D4
+10CA:  INCF   66,F
+10CC:  MOVWF  74
+10CE:  CALL   0764
+10D2:  BRA    10C0
+.................... 		break; 
+10D4:  GOTO   19E0
+.................... //RECEITA============================================================================================		 
+.................... 		case 11:																	//EXIBE TELA DE SELE«√O DA RECEITA A EXECUTAR 
+.................... 		lcd_clear();																//Limpa LCD 
+10D8:  CALL   07A8
+.................... 		lcd_gotoxy(1,1);															//Monta primeira linha 
+10DC:  MOVLW  01
+10DE:  MOVWF  75
+10E0:  MOVWF  76
+10E2:  CALL   0742
+.................... 		lcd_putc("RECEITA");														// 
+10E6:  CLRF   66
+10E8:  MOVF   66,W
+10EA:  CALL   014A
+10EE:  IORLW  00
+10F0:  BZ    10FC
+10F2:  INCF   66,F
+10F4:  MOVWF  74
+10F6:  CALL   0764
+10FA:  BRA    10E8
+.................... 		lcd_gotoxy(1,2);															//Monta segunda linha 
+10FC:  MOVLW  01
+10FE:  MOVWF  75
+1100:  MOVLW  02
+1102:  MOVWF  76
+1104:  CALL   0742
+.................... 		printf(lcd_putc, "A EXECUTAR: [%02u]",MB_RECEITA);							// 
+1108:  CLRF   66
+110A:  MOVF   66,W
+110C:  CALL   016C
+1110:  INCF   66,F
+1112:  MOVWF  00
+1114:  MOVWF  74
+1116:  CALL   0764
+111A:  MOVLW  0D
+111C:  SUBWF  66,W
+111E:  BNZ   110A
+1120:  MOVFF  35,67
+1124:  MOVLW  01
+1126:  MOVWF  68
+1128:  CALL   08F8
+112C:  MOVLW  5D
+112E:  MOVWF  74
+1130:  CALL   0764
+.................... 		MB_RECEITA=teclado_3x4_valor(MB_TECLA_PRESS, MB_RECEITA, 2);				//EdiÁ„o via teclado 
+1134:  MOVFF  3D,66
+1138:  CLRF   6A
+113A:  CLRF   69
+113C:  CLRF   68
+113E:  MOVFF  35,67
+1142:  MOVLW  02
+1144:  MOVWF  6B
+1146:  RCALL  0ADE
+1148:  MOVFF  00,35
+.................... 		 
+.................... 		if(MX_PLSP_NXT)	MW_SCREEN++;									//Verifica se bot„o de avanÁo foi pressionado. Se sim, chama proxima tela	 
+114C:  BTFSS  18.3
+114E:  BRA    1156
+1150:  INCF   31,F
+1152:  BTFSC  FD8.2
+1154:  INCF   32,F
+.................... 		break; 
+1156:  GOTO   19E0
+.................... //--------------		 
+.................... 		case 12:																	//EXIBE TELA DE SELE«√O DA RECEITA A EDITAR 
+.................... 		lcd_clear();																//Limpa LCD 
+115A:  CALL   07A8
+.................... 		lcd_gotoxy(1,1);															//Monta primeira linha 
+115E:  MOVLW  01
+1160:  MOVWF  75
+1162:  MOVWF  76
+1164:  CALL   0742
+.................... 		lcd_putc("RECEITA");														// 
+1168:  CLRF   66
+116A:  MOVF   66,W
+116C:  CALL   014A
+1170:  IORLW  00
+1172:  BZ    117E
+1174:  INCF   66,F
+1176:  MOVWF  74
+1178:  CALL   0764
+117C:  BRA    116A
+.................... 		lcd_gotoxy(1,2);															//Monta segunda linha 
+117E:  MOVLW  01
+1180:  MOVWF  75
+1182:  MOVLW  02
+1184:  MOVWF  76
+1186:  CALL   0742
+.................... 		printf(lcd_putc, "A EDITAR:   [%02u]",MB_RECEITA_ED);						// 
+118A:  CLRF   66
+118C:  MOVF   66,W
+118E:  CALL   019A
+1192:  INCF   66,F
+1194:  MOVWF  00
+1196:  MOVWF  74
+1198:  CALL   0764
+119C:  MOVLW  0D
+119E:  SUBWF  66,W
+11A0:  BNZ   118C
+11A2:  MOVFF  36,67
+11A6:  MOVLW  01
+11A8:  MOVWF  68
+11AA:  CALL   08F8
+11AE:  MOVLW  5D
+11B0:  MOVWF  74
+11B2:  CALL   0764
+.................... 		MB_RECEITA_ED=teclado_3x4_valor(MB_TECLA_PRESS, MB_RECEITA_ED, 2);			//EdiÁ„o via teclado 
+11B6:  MOVFF  3D,66
+11BA:  CLRF   6A
+11BC:  CLRF   69
+11BE:  CLRF   68
+11C0:  MOVFF  36,67
+11C4:  MOVLW  02
+11C6:  MOVWF  6B
+11C8:  RCALL  0ADE
+11CA:  MOVFF  00,36
+....................  
+.................... 		if(MX_PLSP_NXT)	MW_SCREEN=13;									//Verifica se bot„o de avanÁo foi pressionado. Se sim, chama proxima tela	 
+11CE:  BTFSS  18.3
+11D0:  BRA    11D8
+11D2:  CLRF   32
+11D4:  MOVLW  0D
+11D6:  MOVWF  31
+.................... 		break; 
+11D8:  GOTO   19E0
+.................... 		 
+.................... //--------------		 
+.................... 		case 13:																	//EXIBE TELA DE EDI«√O DO TEOR DESEJADO 
+.................... 		lcd_clear();																//Limpa LCD 
+11DC:  CALL   07A8
+.................... 		lcd_gotoxy(1,1);															//Monta primeira linha 
+11E0:  MOVLW  01
+11E2:  MOVWF  75
+11E4:  MOVWF  76
+11E6:  CALL   0742
+.................... 		lcd_putc("TEOR");															// 
+11EA:  CLRF   66
+11EC:  MOVF   66,W
+11EE:  CALL   01C8
+11F2:  IORLW  00
+11F4:  BZ    1200
+11F6:  INCF   66,F
+11F8:  MOVWF  74
+11FA:  CALL   0764
+11FE:  BRA    11EC
+.................... 		lcd_gotoxy(1,2);															//Monta segunda linha 
+1200:  MOVLW  01
+1202:  MOVWF  75
+1204:  MOVLW  02
+1206:  MOVWF  76
+1208:  CALL   0742
+.................... 		printf(lcd_putc, "DESEJADO:  [%02u",MB_TEOR_SP);							// 
+120C:  CLRF   66
+120E:  MOVF   66,W
+1210:  CALL   01E8
+1214:  INCF   66,F
+1216:  MOVWF  00
+1218:  MOVWF  74
+121A:  CALL   0764
+121E:  MOVLW  0C
+1220:  SUBWF  66,W
+1222:  BNZ   120E
+1224:  MOVFF  3F,67
+1228:  MOVLW  01
+122A:  MOVWF  68
+122C:  CALL   08F8
+.................... 		lcd_putc("%]");																// 
+1230:  CLRF   66
+1232:  MOVF   66,W
+1234:  CALL   0214
+1238:  IORLW  00
+123A:  BZ    1246
+123C:  INCF   66,F
+123E:  MOVWF  74
+1240:  CALL   0764
+1244:  BRA    1232
+.................... 		MB_TEOR_SP=teclado_3x4_valor(MB_TECLA_PRESS, MB_TEOR_SP, 2);				//EdiÁ„o via teclado 
+1246:  MOVFF  3D,66
+124A:  CLRF   6A
+124C:  CLRF   69
+124E:  CLRF   68
+1250:  MOVFF  3F,67
+1254:  MOVLW  02
+1256:  MOVWF  6B
+1258:  RCALL  0ADE
+125A:  MOVFF  00,3F
+....................  
+.................... 		if(MX_PLSP_NXT)	MW_SCREEN=14;									//Verifica se bot„o de avanÁo foi pressionado. Se sim, chama proxima tela	 
+125E:  BTFSS  18.3
+1260:  BRA    1268
+1262:  CLRF   32
+1264:  MOVLW  0E
+1266:  MOVWF  31
+.................... 		break; 
+1268:  GOTO   19E0
+.................... 		 
+.................... //--------------		 
+.................... 		case 14:																	//EXIBE TELA DE EDI«√O DO TEMPO DE HOMOGENEIZA«√O INICIAL 
+.................... 		lcd_clear();																//Limpa LCD 
+126C:  CALL   07A8
+.................... 		lcd_gotoxy(1,1);															//Monta primeira linha 
+1270:  MOVLW  01
+1272:  MOVWF  75
+1274:  MOVWF  76
+1276:  CALL   0742
+.................... 		lcd_putc("T.HOMOGENEIZACAO");												// 
+127A:  CLRF   66
+127C:  MOVF   66,W
+127E:  CALL   0232
+1282:  IORLW  00
+1284:  BZ    1290
+1286:  INCF   66,F
+1288:  MOVWF  74
+128A:  CALL   0764
+128E:  BRA    127C
+.................... 		lcd_gotoxy(1,2);															//Monta segunda linha 
+1290:  MOVLW  01
+1292:  MOVWF  75
+1294:  MOVLW  02
+1296:  MOVWF  76
+1298:  CALL   0742
+.................... 		printf(lcd_putc, "INICIAL:  [%03Lus]",MW_T_HOMO_INI_SP);					// 
+129C:  CLRF   66
+129E:  MOVF   66,W
+12A0:  CALL   025E
+12A4:  INCF   66,F
+12A6:  MOVWF  00
+12A8:  MOVWF  74
+12AA:  CALL   0764
+12AE:  MOVLW  0B
+12B0:  SUBWF  66,W
+12B2:  BNZ   129E
+12B4:  MOVLW  0A
+12B6:  MOVWF  FE9
+12B8:  MOVFF  41,68
+12BC:  MOVFF  40,67
+12C0:  CALL   095E
+12C4:  MOVLW  73
+12C6:  MOVWF  74
+12C8:  CALL   0764
+12CC:  MOVLW  5D
+12CE:  MOVWF  74
+12D0:  CALL   0764
+.................... 		MW_T_HOMO_INI_SP=teclado_3x4_valor(MB_TECLA_PRESS, MW_T_HOMO_INI_SP, 3);	//EdiÁ„o via teclado 
+12D4:  MOVFF  3D,66
+12D8:  CLRF   6A
+12DA:  CLRF   69
+12DC:  MOVFF  41,68
+12E0:  MOVFF  40,67
+12E4:  MOVLW  03
+12E6:  MOVWF  6B
+12E8:  CALL   0ADE
+12EC:  MOVFF  01,41
+12F0:  MOVFF  00,40
+....................  
+.................... 		if(MX_PLSP_NXT)	MW_SCREEN=15;									//Verifica se bot„o de avanÁo foi pressionado. Se sim, chama proxima tela	 
+12F4:  BTFSS  18.3
+12F6:  BRA    12FE
+12F8:  CLRF   32
+12FA:  MOVLW  0F
+12FC:  MOVWF  31
+.................... 		break; 
+12FE:  BRA    19E0
+....................  
+.................... //--------------				 
+.................... 		case 15:																	//EXIBE TELA DE EDI«√O DO TEOR APROXIMADO 
+.................... 		lcd_clear();																//Limpa LCD 
+1300:  CALL   07A8
+.................... 		lcd_gotoxy(1,1);															//Monta primeira linha 
+1304:  MOVLW  01
+1306:  MOVWF  75
+1308:  MOVWF  76
+130A:  CALL   0742
+.................... 		lcd_putc("TEOR");															// 
+130E:  CLRF   66
+1310:  MOVF   66,W
+1312:  CALL   01C8
+1316:  IORLW  00
+1318:  BZ    1324
+131A:  INCF   66,F
+131C:  MOVWF  74
+131E:  CALL   0764
+1322:  BRA    1310
+.................... 		lcd_gotoxy(1,2);															//Monta segunda linha 
+1324:  MOVLW  01
+1326:  MOVWF  75
+1328:  MOVLW  02
+132A:  MOVWF  76
+132C:  CALL   0742
+.................... 		printf(lcd_putc, "APROXIMADO:[%02Lu",MW_TEOR_APROX_SP);						// 
+1330:  CLRF   66
+1332:  MOVF   66,W
+1334:  CALL   028C
+1338:  INCF   66,F
+133A:  MOVWF  00
+133C:  MOVWF  74
+133E:  CALL   0764
+1342:  MOVLW  0C
+1344:  SUBWF  66,W
+1346:  BNZ   1332
+1348:  MOVLW  0B
+134A:  MOVWF  FE9
+134C:  MOVFF  43,68
+1350:  MOVFF  42,67
+1354:  CALL   095E
+.................... 		lcd_putc("%]");																// 
+1358:  CLRF   66
+135A:  MOVF   66,W
+135C:  CALL   0214
+1360:  IORLW  00
+1362:  BZ    136E
+1364:  INCF   66,F
+1366:  MOVWF  74
+1368:  CALL   0764
+136C:  BRA    135A
+.................... 		MW_TEOR_APROX_SP=teclado_3x4_valor(MB_TECLA_PRESS, MW_TEOR_APROX_SP, 2);	//EdiÁ„o via teclado 
+136E:  MOVFF  3D,66
+1372:  CLRF   6A
+1374:  CLRF   69
+1376:  MOVFF  43,68
+137A:  MOVFF  42,67
+137E:  MOVLW  02
+1380:  MOVWF  6B
+1382:  CALL   0ADE
+1386:  MOVFF  01,43
+138A:  MOVFF  00,42
+....................  
+.................... 		if(MX_PLSP_NXT)	MW_SCREEN=16;									//Verifica se bot„o de avanÁo foi pressionado. Se sim, chama proxima tela	 
+138E:  BTFSS  18.3
+1390:  BRA    1398
+1392:  CLRF   32
+1394:  MOVLW  10
+1396:  MOVWF  31
+.................... 		break; 
+1398:  BRA    19E0
+.................... 		 
+.................... //--------------		 
+.................... 		case 16:																	//EXIBE TELA DE EDI«√O DO TEMPO DE V¡LVULA LIGADA 
+.................... 		lcd_clear();																//Limpa LCD 
+139A:  CALL   07A8
+.................... 		lcd_gotoxy(1,1);															//Monta primeira linha 
+139E:  MOVLW  01
+13A0:  MOVWF  75
+13A2:  MOVWF  76
+13A4:  CALL   0742
+.................... 		lcd_putc("TEMPO VALVULA");													// 
+13A8:  CLRF   66
+13AA:  MOVF   66,W
+13AC:  CALL   02B8
+13B0:  IORLW  00
+13B2:  BZ    13BE
+13B4:  INCF   66,F
+13B6:  MOVWF  74
+13B8:  CALL   0764
+13BC:  BRA    13AA
+.................... 		lcd_gotoxy(1,2);															//Monta segunda linha 
+13BE:  MOVLW  01
+13C0:  MOVWF  75
+13C2:  MOVLW  02
+13C4:  MOVWF  76
+13C6:  CALL   0742
+.................... 		printf(lcd_putc, "LIGADA:   [%03Lus]",MW_TON_SP);							// 
+13CA:  CLRF   66
+13CC:  MOVF   66,W
+13CE:  CALL   02E0
+13D2:  INCF   66,F
+13D4:  MOVWF  00
+13D6:  MOVWF  74
+13D8:  CALL   0764
+13DC:  MOVLW  0B
+13DE:  SUBWF  66,W
+13E0:  BNZ   13CC
+13E2:  MOVLW  0A
+13E4:  MOVWF  FE9
+13E6:  MOVFF  45,68
+13EA:  MOVFF  44,67
+13EE:  CALL   095E
+13F2:  MOVLW  73
+13F4:  MOVWF  74
+13F6:  CALL   0764
+13FA:  MOVLW  5D
+13FC:  MOVWF  74
+13FE:  CALL   0764
+.................... 		MW_TON_SP=teclado_3x4_valor(MB_TECLA_PRESS, MW_TON_SP, 3);					//EdiÁ„o via teclado 
+1402:  MOVFF  3D,66
+1406:  CLRF   6A
+1408:  CLRF   69
+140A:  MOVFF  45,68
+140E:  MOVFF  44,67
+1412:  MOVLW  03
+1414:  MOVWF  6B
+1416:  CALL   0ADE
+141A:  MOVFF  01,45
+141E:  MOVFF  00,44
+....................  
+.................... 		if(MX_PLSP_NXT)	MW_SCREEN=17;									//Verifica se bot„o de avanÁo foi pressionado. Se sim, chama proxima tela	 
+1422:  BTFSS  18.3
+1424:  BRA    142C
+1426:  CLRF   32
+1428:  MOVLW  11
+142A:  MOVWF  31
+.................... 		break; 
+142C:  BRA    19E0
+.................... 		 
+.................... //--------------		 
+.................... 		case 17:																	//EXIBE TELA DE EDI«√O DO TEMPO DE V¡LVULA DESLIGADA 
+.................... 		lcd_clear();																//Limpa LCD 
+142E:  CALL   07A8
+.................... 		lcd_gotoxy(1,1);															//Monta primeira linha 
+1432:  MOVLW  01
+1434:  MOVWF  75
+1436:  MOVWF  76
+1438:  CALL   0742
+.................... 		lcd_putc("TEMPO VALVULA");													// 
+143C:  CLRF   66
+143E:  MOVF   66,W
+1440:  CALL   02B8
+1444:  IORLW  00
+1446:  BZ    1452
+1448:  INCF   66,F
+144A:  MOVWF  74
+144C:  CALL   0764
+1450:  BRA    143E
+.................... 		lcd_gotoxy(1,2);															//Monta segunda linha 
+1452:  MOVLW  01
+1454:  MOVWF  75
+1456:  MOVLW  02
+1458:  MOVWF  76
+145A:  CALL   0742
+.................... 		printf(lcd_putc, "DESLIGADA:[%03Lus]",MW_TOF_SP);							// 
+145E:  CLRF   66
+1460:  MOVF   66,W
+1462:  CALL   030E
+1466:  INCF   66,F
+1468:  MOVWF  00
+146A:  MOVWF  74
+146C:  CALL   0764
+1470:  MOVLW  0B
+1472:  SUBWF  66,W
+1474:  BNZ   1460
+1476:  MOVLW  0A
+1478:  MOVWF  FE9
+147A:  MOVFF  47,68
+147E:  MOVFF  46,67
+1482:  CALL   095E
+1486:  MOVLW  73
+1488:  MOVWF  74
+148A:  CALL   0764
+148E:  MOVLW  5D
+1490:  MOVWF  74
+1492:  CALL   0764
+.................... 		MW_TOF_SP=teclado_3x4_valor(MB_TECLA_PRESS, MW_TOF_SP, 3);					//EdiÁ„o via teclado 
+1496:  MOVFF  3D,66
+149A:  CLRF   6A
+149C:  CLRF   69
+149E:  MOVFF  47,68
+14A2:  MOVFF  46,67
+14A6:  MOVLW  03
+14A8:  MOVWF  6B
+14AA:  CALL   0ADE
+14AE:  MOVFF  01,47
+14B2:  MOVFF  00,46
+....................  
+.................... 		if(MX_PLSP_NXT)	MW_SCREEN=18;									//Verifica se bot„o de avanÁo foi pressionado. Se sim, chama proxima tela	 
+14B6:  BTFSS  18.3
+14B8:  BRA    14C0
+14BA:  CLRF   32
+14BC:  MOVLW  12
+14BE:  MOVWF  31
+.................... 		break; 
+14C0:  BRA    19E0
+....................  
+.................... //--------------		 
+.................... 		case 18:																	//EXIBE TELA DE EDI«√O DO TEMPO DE HOMOGENEIZA«√O 
+.................... 		lcd_clear();																//Limpa LCD 
+14C2:  CALL   07A8
+.................... 		lcd_gotoxy(1,1);															//Monta primeira linha 
+14C6:  MOVLW  01
+14C8:  MOVWF  75
+14CA:  MOVWF  76
+14CC:  CALL   0742
+.................... 		lcd_putc("T.HOMOGENEIZACAO");												// 
+14D0:  CLRF   66
+14D2:  MOVF   66,W
+14D4:  CALL   0232
+14D8:  IORLW  00
+14DA:  BZ    14E6
+14DC:  INCF   66,F
+14DE:  MOVWF  74
+14E0:  CALL   0764
+14E4:  BRA    14D2
+.................... 		lcd_gotoxy(11,2);															//Monta segunda linha 
+14E6:  MOVLW  0B
+14E8:  MOVWF  75
+14EA:  MOVLW  02
+14EC:  MOVWF  76
+14EE:  CALL   0742
+.................... 		printf(lcd_putc, "[%03Lus]",MW_T_HOMO_SP);									// 
+14F2:  MOVLW  5B
+14F4:  MOVWF  74
+14F6:  CALL   0764
+14FA:  MOVLW  0A
+14FC:  MOVWF  FE9
+14FE:  MOVFF  49,68
+1502:  MOVFF  48,67
+1506:  CALL   095E
+150A:  MOVLW  73
+150C:  MOVWF  74
+150E:  CALL   0764
+1512:  MOVLW  5D
+1514:  MOVWF  74
+1516:  CALL   0764
+.................... 		MW_T_HOMO_SP=teclado_3x4_valor(MB_TECLA_PRESS, MW_T_HOMO_SP, 3);			//EdiÁ„o via teclado 
+151A:  MOVFF  3D,66
+151E:  CLRF   6A
+1520:  CLRF   69
+1522:  MOVFF  49,68
+1526:  MOVFF  48,67
+152A:  MOVLW  03
+152C:  MOVWF  6B
+152E:  CALL   0ADE
+1532:  MOVFF  01,49
+1536:  MOVFF  00,48
+....................  
+.................... 		if(MX_PLSP_NXT)	MW_SCREEN=19;									//Verifica se bot„o de avanÁo foi pressionado. Se sim, chama proxima tela	 
+153A:  BTFSS  18.3
+153C:  BRA    1544
+153E:  CLRF   32
+1540:  MOVLW  13
+1542:  MOVWF  31
+.................... 		break; 
+1544:  BRA    19E0
+.................... 		 
+.................... //--------------		 
+.................... 		case 19:																	//EXIBE TELA DE EDI«√O DO TEMPO DE HOMOGENEIZA«√O 
+.................... 		lcd_clear();																//Limpa LCD 
+1546:  CALL   07A8
+.................... 		lcd_gotoxy(1,1);															//Monta primeira linha 
+154A:  MOVLW  01
+154C:  MOVWF  75
+154E:  MOVWF  76
+1550:  CALL   0742
+.................... 		lcd_putc("TEMPO VALVULA F");												// 
+1554:  CLRF   66
+1556:  MOVF   66,W
+1558:  CALL   033C
+155C:  IORLW  00
+155E:  BZ    156A
+1560:  INCF   66,F
+1562:  MOVWF  74
+1564:  CALL   0764
+1568:  BRA    1556
+.................... 		lcd_gotoxy(1,2);															//Monta segunda linha 
+156A:  MOVLW  01
+156C:  MOVWF  75
+156E:  MOVLW  02
+1570:  MOVWF  76
+1572:  CALL   0742
+.................... 		printf(lcd_putc, "LIGADA:   [%03Lus]",MW_TON_FINO_SP);						// 
+1576:  CLRF   66
+1578:  MOVF   66,W
+157A:  CALL   02E0
+157E:  INCF   66,F
+1580:  MOVWF  00
+1582:  MOVWF  74
+1584:  CALL   0764
+1588:  MOVLW  0B
+158A:  SUBWF  66,W
+158C:  BNZ   1578
+158E:  MOVLW  0A
+1590:  MOVWF  FE9
+1592:  MOVFF  4B,68
+1596:  MOVFF  4A,67
+159A:  CALL   095E
+159E:  MOVLW  73
+15A0:  MOVWF  74
+15A2:  CALL   0764
+15A6:  MOVLW  5D
+15A8:  MOVWF  74
+15AA:  CALL   0764
+.................... 		MW_TON_FINO_SP=teclado_3x4_valor(MB_TECLA_PRESS, MW_TON_FINO_SP, 3);		//EdiÁ„o via teclado 
+15AE:  MOVFF  3D,66
+15B2:  CLRF   6A
+15B4:  CLRF   69
+15B6:  MOVFF  4B,68
+15BA:  MOVFF  4A,67
+15BE:  MOVLW  03
+15C0:  MOVWF  6B
+15C2:  CALL   0ADE
+15C6:  MOVFF  01,4B
+15CA:  MOVFF  00,4A
+....................  
+.................... 		if(MX_PLSP_NXT)	MW_SCREEN=20;									//Verifica se bot„o de avanÁo foi pressionado. Se sim, chama proxima tela	 
+15CE:  BTFSS  18.3
+15D0:  BRA    15D8
+15D2:  CLRF   32
+15D4:  MOVLW  14
+15D6:  MOVWF  31
+.................... 		break; 
+15D8:  BRA    19E0
+.................... 		 
+.................... //--------------		 
+.................... 		case 20:																	//EXIBE TELA DE EDI«√O DO TEMPO DE HOMOGENEIZA«√O 
+.................... 		lcd_clear();																//Limpa LCD 
+15DA:  CALL   07A8
+.................... 		lcd_gotoxy(1,1);															//Monta primeira linha 
+15DE:  MOVLW  01
+15E0:  MOVWF  75
+15E2:  MOVWF  76
+15E4:  CALL   0742
+.................... 		lcd_putc("TEMPO VALVULA F");												// 
+15E8:  CLRF   66
+15EA:  MOVF   66,W
+15EC:  CALL   033C
+15F0:  IORLW  00
+15F2:  BZ    15FE
+15F4:  INCF   66,F
+15F6:  MOVWF  74
+15F8:  CALL   0764
+15FC:  BRA    15EA
+.................... 		lcd_gotoxy(1,2);															//Monta segunda linha 
+15FE:  MOVLW  01
+1600:  MOVWF  75
+1602:  MOVLW  02
+1604:  MOVWF  76
+1606:  CALL   0742
+.................... 		printf(lcd_putc, "DESLIGADA:[%03Lus]",MW_TOF_FINO_SP);						// 
+160A:  CLRF   66
+160C:  MOVF   66,W
+160E:  CALL   030E
+1612:  INCF   66,F
+1614:  MOVWF  00
+1616:  MOVWF  74
+1618:  CALL   0764
+161C:  MOVLW  0B
+161E:  SUBWF  66,W
+1620:  BNZ   160C
+1622:  MOVLW  0A
+1624:  MOVWF  FE9
+1626:  MOVFF  4D,68
+162A:  MOVFF  4C,67
+162E:  CALL   095E
+1632:  MOVLW  73
+1634:  MOVWF  74
+1636:  CALL   0764
+163A:  MOVLW  5D
+163C:  MOVWF  74
+163E:  CALL   0764
+.................... 		MW_TOF_FINO_SP=teclado_3x4_valor(MB_TECLA_PRESS, MW_TOF_FINO_SP, 3);		//EdiÁ„o via teclado 
+1642:  MOVFF  3D,66
+1646:  CLRF   6A
+1648:  CLRF   69
+164A:  MOVFF  4D,68
+164E:  MOVFF  4C,67
+1652:  MOVLW  03
+1654:  MOVWF  6B
+1656:  CALL   0ADE
+165A:  MOVFF  01,4D
+165E:  MOVFF  00,4C
+....................  
+.................... 		if(MX_PLSP_NXT)	MW_SCREEN=11;									//Verifica se bot„o de avanÁo foi pressionado. Se sim, chama proxima tela	 
+1662:  BTFSS  18.3
+1664:  BRA    166C
+1666:  CLRF   32
+1668:  MOVLW  0B
+166A:  MOVWF  31
+.................... 		break; 
+166C:  BRA    19E0
+.................... 							 
+.................... //PARAMETROS================================================================================================			 
+.................... 		case 101:																	//EXIBE TELA DE EDI«√O DO GANHO 
+.................... 		lcd_clear();																//Limpa LCD 
+166E:  CALL   07A8
+.................... 		lcd_gotoxy(1,1);															//Monta primeira linha 
+1672:  MOVLW  01
+1674:  MOVWF  75
+1676:  MOVWF  76
+1678:  CALL   0742
+.................... 		lcd_putc("----------------");												// 
+167C:  CLRF   66
+167E:  MOVF   66,W
+1680:  CALL   0366
+1684:  IORLW  00
+1686:  BZ    1692
+1688:  INCF   66,F
+168A:  MOVWF  74
+168C:  CALL   0764
+1690:  BRA    167E
+.................... 		lcd_gotoxy(1,2);															//Monta segunda linha 
+1692:  MOVLW  01
+1694:  MOVWF  75
+1696:  MOVLW  02
+1698:  MOVWF  76
+169A:  CALL   0742
+.................... 		printf(lcd_putc, "GANHO:    [%04Lu]",MW_GANHO);								// 
+169E:  CLRF   66
+16A0:  MOVF   66,W
+16A2:  CALL   0392
+16A6:  INCF   66,F
+16A8:  MOVWF  00
+16AA:  MOVWF  74
+16AC:  CALL   0764
+16B0:  MOVLW  0B
+16B2:  SUBWF  66,W
+16B4:  BNZ   16A0
+16B6:  MOVLW  09
+16B8:  MOVWF  FE9
+16BA:  MOVFF  4F,68
+16BE:  MOVFF  4E,67
+16C2:  CALL   095E
+16C6:  MOVLW  5D
+16C8:  MOVWF  74
+16CA:  CALL   0764
+.................... 		MW_GANHO=teclado_3x4_valor(MB_TECLA_PRESS, MW_GANHO, 4);					//EdiÁ„o via teclado 
+16CE:  MOVFF  3D,66
+16D2:  CLRF   6A
+16D4:  CLRF   69
+16D6:  MOVFF  4F,68
+16DA:  MOVFF  4E,67
+16DE:  MOVLW  04
+16E0:  MOVWF  6B
+16E2:  CALL   0ADE
+16E6:  MOVFF  01,4F
+16EA:  MOVFF  00,4E
+....................  
+.................... 		if(MX_PLSP_NXT)	MW_SCREEN=102;									//Verifica se bot„o de avanÁo foi pressionado. Se sim, chama proxima tela	 
+16EE:  BTFSS  18.3
+16F0:  BRA    16F8
+16F2:  CLRF   32
+16F4:  MOVLW  66
+16F6:  MOVWF  31
+.................... 		break; 
+16F8:  BRA    19E0
+.................... 		 
+.................... //--------------		 
+.................... 		case 102:																	//EXIBE TELA DE EDI«√O DO OFFSET 
+.................... 		lcd_clear();																//Limpa LCD 
+16FA:  CALL   07A8
+.................... 		lcd_gotoxy(1,1);															//Monta primeira linha 
+16FE:  MOVLW  01
+1700:  MOVWF  75
+1702:  MOVWF  76
+1704:  CALL   0742
+.................... 		lcd_putc("----------------");												// 
+1708:  CLRF   66
+170A:  MOVF   66,W
+170C:  CALL   0366
+1710:  IORLW  00
+1712:  BZ    171E
+1714:  INCF   66,F
+1716:  MOVWF  74
+1718:  CALL   0764
+171C:  BRA    170A
+.................... 		lcd_gotoxy(1,2);															//Monta segunda linha 
+171E:  MOVLW  01
+1720:  MOVWF  75
+1722:  MOVLW  02
+1724:  MOVWF  76
+1726:  CALL   0742
+.................... 		printf(lcd_putc, "OFFSET:   [%04Lu]",MW_OFFSET);							// 
+172A:  CLRF   66
+172C:  MOVF   66,W
+172E:  CALL   03BE
+1732:  INCF   66,F
+1734:  MOVWF  00
+1736:  MOVWF  74
+1738:  CALL   0764
+173C:  MOVLW  0B
+173E:  SUBWF  66,W
+1740:  BNZ   172C
+1742:  MOVLW  09
+1744:  MOVWF  FE9
+1746:  MOVFF  53,68
+174A:  MOVFF  52,67
+174E:  CALL   095E
+1752:  MOVLW  5D
+1754:  MOVWF  74
+1756:  CALL   0764
+.................... 		MW_OFFSET=teclado_3x4_valor(MB_TECLA_PRESS, MW_OFFSET, 4);					//EdiÁ„o via teclado 
+175A:  MOVFF  3D,66
+175E:  CLRF   6A
+1760:  CLRF   69
+1762:  MOVFF  53,68
+1766:  MOVFF  52,67
+176A:  MOVLW  04
+176C:  MOVWF  6B
+176E:  CALL   0ADE
+1772:  MOVFF  01,53
+1776:  MOVFF  00,52
+....................  
+.................... 		if(MX_PLSP_NXT)	MW_SCREEN=103;									//Verifica se bot„o de avanÁo foi pressionado. Se sim, chama proxima tela	 
+177A:  BTFSS  18.3
+177C:  BRA    1784
+177E:  CLRF   32
+1780:  MOVLW  67
+1782:  MOVWF  31
+.................... 		break; 
+1784:  BRA    19E0
+.................... 		 
+.................... //--------------		 
+.................... 		case 103:																	//EXIBE TELA DE EDI«√O DA RELA«√O DE PULSOS DO HIDROMETRO 
+.................... 		lcd_clear();																//Limpa LCD 
+1786:  CALL   07A8
+.................... 		lcd_gotoxy(1,1);															//Monta primeira linha 
+178A:  MOVLW  01
+178C:  MOVWF  75
+178E:  MOVWF  76
+1790:  CALL   0742
+.................... 		lcd_putc("HIDROMETRO");														// 
+1794:  CLRF   66
+1796:  MOVF   66,W
+1798:  CALL   03EA
+179C:  IORLW  00
+179E:  BZ    17AA
+17A0:  INCF   66,F
+17A2:  MOVWF  74
+17A4:  CALL   0764
+17A8:  BRA    1796
+.................... 		lcd_gotoxy(1,2);															//Monta segunda linha 
+17AA:  MOVLW  01
+17AC:  MOVWF  75
+17AE:  MOVLW  02
+17B0:  MOVWF  76
+17B2:  CALL   0742
+.................... 		printf(lcd_putc, "REL.: [%05.2Lwp/l]",MW_HIDR_REL);							// 
+17B6:  CLRF   66
+17B8:  MOVF   66,W
+17BA:  CALL   0410
+17BE:  INCF   66,F
+17C0:  MOVWF  00
+17C2:  MOVWF  74
+17C4:  CALL   0764
+17C8:  MOVLW  07
+17CA:  SUBWF  66,W
+17CC:  BNZ   17B8
+17CE:  MOVLW  45
+17D0:  MOVWF  FE9
+17D2:  CLRF   6A
+17D4:  CLRF   69
+17D6:  MOVFF  57,68
+17DA:  MOVFF  56,67
+17DE:  MOVLW  02
+17E0:  MOVWF  6B
+17E2:  GOTO   0E30
+17E6:  MOVLW  0E
+17E8:  MOVWF  67
+17EA:  MOVF   67,W
+17EC:  CALL   0410
+17F0:  INCF   67,F
+17F2:  MOVWF  00
+17F4:  MOVWF  74
+17F6:  CALL   0764
+17FA:  MOVLW  12
+17FC:  SUBWF  67,W
+17FE:  BNZ   17EA
+.................... 		MW_HIDR_REL=teclado_3x4_valor(MB_TECLA_PRESS, MW_HIDR_REL, 4);				//EdiÁ„o via teclado 
+1800:  MOVFF  3D,66
+1804:  CLRF   6A
+1806:  CLRF   69
+1808:  MOVFF  57,68
+180C:  MOVFF  56,67
+1810:  MOVLW  04
+1812:  MOVWF  6B
+1814:  CALL   0ADE
+1818:  MOVFF  01,57
+181C:  MOVFF  00,56
+....................  
+.................... 		if(MX_PLSP_NXT)	MW_SCREEN=104;									//Verifica se bot„o de avanÁo foi pressionado. Se sim, chama proxima tela	 
+1820:  BTFSS  18.3
+1822:  BRA    182A
+1824:  CLRF   32
+1826:  MOVLW  68
+1828:  MOVWF  31
+.................... 		break; 
+182A:  BRA    19E0
+.................... 		 
+.................... //--------------		 
+.................... 		case 104:																	//EXIBE TELA DE EDI«√O DO METODO DE LEITURA 
+.................... 		lcd_clear();																//Limpa LCD 
+182C:  CALL   07A8
+.................... 		lcd_gotoxy(1,1);															//Monta primeira linha 
+1830:  MOVLW  01
+1832:  MOVWF  75
+1834:  MOVWF  76
+1836:  CALL   0742
+.................... 		lcd_putc("METODO DE");														// 
+183A:  CLRF   66
+183C:  MOVF   66,W
+183E:  CALL   043E
+1842:  IORLW  00
+1844:  BZ    1850
+1846:  INCF   66,F
+1848:  MOVWF  74
+184A:  CALL   0764
+184E:  BRA    183C
+.................... 		lcd_gotoxy(1,2);															//Monta segunda linha 
+1850:  MOVLW  01
+1852:  MOVWF  75
+1854:  MOVLW  02
+1856:  MOVWF  76
+1858:  CALL   0742
+.................... 		printf(lcd_putc, "LEITURA:     [%01Lu]",MW_METODO_LEITURA);					// 
+185C:  CLRF   66
+185E:  MOVF   66,W
+1860:  CALL   0462
+1864:  INCF   66,F
+1866:  MOVWF  00
+1868:  MOVWF  74
+186A:  CALL   0764
+186E:  MOVLW  0E
+1870:  SUBWF  66,W
+1872:  BNZ   185E
+1874:  MOVLW  0C
+1876:  MOVWF  FE9
+1878:  MOVFF  5B,68
+187C:  MOVFF  5A,67
+1880:  CALL   095E
+1884:  MOVLW  5D
+1886:  MOVWF  74
+1888:  CALL   0764
+.................... 		MW_METODO_LEITURA=teclado_3x4_valor(MB_TECLA_PRESS, MW_METODO_LEITURA, 1);	//EdiÁ„o via teclado 
+188C:  MOVFF  3D,66
+1890:  CLRF   6A
+1892:  CLRF   69
+1894:  MOVFF  5B,68
+1898:  MOVFF  5A,67
+189C:  MOVLW  01
+189E:  MOVWF  6B
+18A0:  CALL   0ADE
+18A4:  MOVFF  01,5B
+18A8:  MOVFF  00,5A
+....................  
+.................... 		if(MX_PLSP_NXT)	MW_SCREEN=105;									//Verifica se bot„o de avanÁo foi pressionado. Se sim, chama proxima tela	 
+18AC:  BTFSS  18.3
+18AE:  BRA    18B6
+18B0:  CLRF   32
+18B2:  MOVLW  69
+18B4:  MOVWF  31
+.................... 		break; 
+18B6:  BRA    19E0
+.................... 		 
+.................... //--------------		 
+.................... 		case 105:																	//EXIBE TELA DE EDI«√O DO INTERVALO DA AMOSTRA 
+.................... 		lcd_clear();																//Limpa LCD 
+18B8:  CALL   07A8
+.................... 		lcd_gotoxy(1,1);															//Monta primeira linha 
+18BC:  MOVLW  01
+18BE:  MOVWF  75
+18C0:  MOVWF  76
+18C2:  CALL   0742
+.................... 		lcd_putc("INTERVALO");														// 
+18C6:  CLRF   66
+18C8:  MOVF   66,W
+18CA:  CALL   0492
+18CE:  IORLW  00
+18D0:  BZ    18DC
+18D2:  INCF   66,F
+18D4:  MOVWF  74
+18D6:  CALL   0764
+18DA:  BRA    18C8
+.................... 		lcd_gotoxy(1,2);															//Monta segunda linha 
+18DC:  MOVLW  01
+18DE:  MOVWF  75
+18E0:  MOVLW  02
+18E2:  MOVWF  76
+18E4:  CALL   0742
+.................... 		printf(lcd_putc, "AMOSTRA:[%04Lums]",MW_T_AMOSTRA);							// 
+18E8:  CLRF   66
+18EA:  MOVF   66,W
+18EC:  CALL   04B6
+18F0:  INCF   66,F
+18F2:  MOVWF  00
+18F4:  MOVWF  74
+18F6:  CALL   0764
+18FA:  MOVLW  09
+18FC:  SUBWF  66,W
+18FE:  BNZ   18EA
+1900:  MOVLW  09
+1902:  MOVWF  FE9
+1904:  MOVFF  5F,68
+1908:  MOVFF  5E,67
+190C:  CALL   095E
+1910:  MOVLW  6D
+1912:  MOVWF  74
+1914:  CALL   0764
+1918:  MOVLW  73
+191A:  MOVWF  74
+191C:  CALL   0764
+1920:  MOVLW  5D
+1922:  MOVWF  74
+1924:  CALL   0764
+.................... 		MW_T_AMOSTRA=teclado_3x4_valor(MB_TECLA_PRESS, MW_T_AMOSTRA, 4);			//EdiÁ„o via teclado 
+1928:  MOVFF  3D,66
+192C:  CLRF   6A
+192E:  CLRF   69
+1930:  MOVFF  5F,68
+1934:  MOVFF  5E,67
+1938:  MOVLW  04
+193A:  MOVWF  6B
+193C:  CALL   0ADE
+1940:  MOVFF  01,5F
+1944:  MOVFF  00,5E
+....................  
+.................... 		if(MX_PLSP_NXT)	MW_SCREEN=106;									//Verifica se bot„o de avanÁo foi pressionado. Se sim, chama proxima tela	 
+1948:  BTFSS  18.3
+194A:  BRA    1952
+194C:  CLRF   32
+194E:  MOVLW  6A
+1950:  MOVWF  31
+.................... 		break; 
+1952:  BRA    19E0
+.................... 		 
+.................... //--------------		 
+.................... 		case 106:																	//EXIBE TELA DE EDI«√O DA MEDIA 
+.................... 		lcd_clear();																//Limpa LCD 
+1954:  CALL   07A8
+.................... 		lcd_gotoxy(1,1);															//Monta primeira linha 
+1958:  MOVLW  01
+195A:  MOVWF  75
+195C:  MOVWF  76
+195E:  CALL   0742
+.................... 		lcd_putc("FATOR MEDIA");													// 
+1962:  CLRF   66
+1964:  MOVF   66,W
+1966:  CALL   04E2
+196A:  IORLW  00
+196C:  BZ    1978
+196E:  INCF   66,F
+1970:  MOVWF  74
+1972:  CALL   0764
+1976:  BRA    1964
+.................... 		lcd_gotoxy(1,2);															//Monta segunda linha 
+1978:  MOVLW  01
+197A:  MOVWF  75
+197C:  MOVLW  02
+197E:  MOVWF  76
+1980:  CALL   0742
+.................... 		printf(lcd_putc, "PONDERADA: [%03Lu]",MW_FATOR_MEDIA);						// 
+1984:  CLRF   66
+1986:  MOVF   66,W
+1988:  CALL   0508
+198C:  INCF   66,F
+198E:  MOVWF  00
+1990:  MOVWF  74
+1992:  CALL   0764
+1996:  MOVLW  0C
+1998:  SUBWF  66,W
+199A:  BNZ   1986
+199C:  MOVLW  0A
+199E:  MOVWF  FE9
+19A0:  MOVFF  63,68
+19A4:  MOVFF  62,67
+19A8:  CALL   095E
+19AC:  MOVLW  5D
+19AE:  MOVWF  74
+19B0:  CALL   0764
+.................... 		MW_FATOR_MEDIA=teclado_3x4_valor(MB_TECLA_PRESS, MW_FATOR_MEDIA, 3);		//EdiÁ„o via teclado 
+19B4:  MOVFF  3D,66
+19B8:  CLRF   6A
+19BA:  CLRF   69
+19BC:  MOVFF  63,68
+19C0:  MOVFF  62,67
+19C4:  MOVLW  03
+19C6:  MOVWF  6B
+19C8:  CALL   0ADE
+19CC:  MOVFF  01,63
+19D0:  MOVFF  00,62
+....................  
+.................... 		if(MX_PLSP_NXT)	MW_SCREEN=101;									//Verifica se bot„o de avanÁo foi pressionado. Se sim, chama proxima tela	 
+19D4:  BTFSS  18.3
+19D6:  BRA    19DE
+19D8:  CLRF   32
+19DA:  MOVLW  65
+19DC:  MOVWF  31
+.................... 		break; 
+19DE:  BRA    19E0
+.................... 		 
+.................... 	} 
+.................... } 
+19E0:  GOTO   1D34 (RETURN)
+....................  
+.................... //SALVA VALORES RETENTIVOS NA EEPROM NA TRANSI«√O DE TELAS CASO TENHAM SIDO ALTERADOS 
+.................... void EEPROM() 
+.................... { 
+.................... 	if(MW_SCREEN_AUX!=MW_SCREEN)			//Verifica se houve transiÁ„o na tela exibida. Se houver, verifica alteraÁ„o nos valores 
+*
+1A4A:  MOVF   31,W
+1A4C:  SUBWF  33,W
+1A4E:  BNZ   1A58
+1A50:  MOVF   32,W
+1A52:  SUBWF  34,W
+1A54:  BTFSC  FD8.2
+1A56:  BRA    1B2A
+.................... 	{										// 
+.................... 		MW_SCREEN_AUX=MW_SCREEN;			// 
+1A58:  MOVFF  32,34
+1A5C:  MOVFF  31,33
+.................... 		 
+.................... 		if(MW_GANHO_AUX!=MW_GANHO)						//Verifica se houve alteraÁ„o no parametro restrito GANHO 
+1A60:  MOVF   4E,W
+1A62:  SUBWF  50,W
+1A64:  BNZ   1A6C
+1A66:  MOVF   4F,W
+1A68:  SUBWF  51,W
+1A6A:  BZ    1A80
+.................... 		{												// 
+.................... 			MW_GANHO_AUX=MW_GANHO;						// 
+1A6C:  MOVFF  4F,51
+1A70:  MOVFF  4E,50
+.................... 			write_eeprom_word(0, MW_GANHO);				//Atualiza valor na EEPROM 
+1A74:  CLRF   66
+1A76:  MOVFF  4F,68
+1A7A:  MOVFF  4E,67
+1A7E:  RCALL  19E4
+.................... 		} 
+.................... 		if(MW_OFFSET_AUX!=MW_OFFSET)					//Verifica se houve alteraÁ„o no parametro restrito OFFSET 
+1A80:  MOVF   52,W
+1A82:  SUBWF  54,W
+1A84:  BNZ   1A8C
+1A86:  MOVF   53,W
+1A88:  SUBWF  55,W
+1A8A:  BZ    1AA2
+.................... 		{												// 
+.................... 			MW_OFFSET_AUX=MW_OFFSET;					// 
+1A8C:  MOVFF  53,55
+1A90:  MOVFF  52,54
+.................... 			write_eeprom_word(2, MW_OFFSET);			//Atualiza valor na EEPROM 
+1A94:  MOVLW  02
+1A96:  MOVWF  66
+1A98:  MOVFF  53,68
+1A9C:  MOVFF  52,67
+1AA0:  RCALL  19E4
+.................... 		} 
+.................... 		if(MW_HIDR_REL_AUX!=MW_HIDR_REL)				//Verifica se houve alteraÁ„o no parametro restrito RELA«√O HIDROMETRO 
+1AA2:  MOVF   56,W
+1AA4:  SUBWF  58,W
+1AA6:  BNZ   1AAE
+1AA8:  MOVF   57,W
+1AAA:  SUBWF  59,W
+1AAC:  BZ    1AC4
+.................... 		{												// 
+.................... 			MW_HIDR_REL_AUX=MW_HIDR_REL;				// 
+1AAE:  MOVFF  57,59
+1AB2:  MOVFF  56,58
+.................... 			write_eeprom_word(4, MW_HIDR_REL);			//Atualiza valor na EEPROM 
+1AB6:  MOVLW  04
+1AB8:  MOVWF  66
+1ABA:  MOVFF  57,68
+1ABE:  MOVFF  56,67
+1AC2:  RCALL  19E4
+.................... 		} 
+.................... 		if(MW_METODO_LEITURA_AUX!=MW_METODO_LEITURA)	//Verifica se houve alteraÁ„o no parametro restrito METODO DE LEITURA 
+1AC4:  MOVF   5A,W
+1AC6:  SUBWF  5C,W
+1AC8:  BNZ   1AD0
+1ACA:  MOVF   5B,W
+1ACC:  SUBWF  5D,W
+1ACE:  BZ    1AE6
+.................... 		{												// 
+.................... 			MW_METODO_LEITURA_AUX=MW_METODO_LEITURA;	// 
+1AD0:  MOVFF  5B,5D
+1AD4:  MOVFF  5A,5C
+.................... 			write_eeprom_word(6, MW_METODO_LEITURA);	//Atualiza valor na EEPROM 
+1AD8:  MOVLW  06
+1ADA:  MOVWF  66
+1ADC:  MOVFF  5B,68
+1AE0:  MOVFF  5A,67
+1AE4:  RCALL  19E4
+.................... 		} 
+.................... 		if(MW_T_AMOSTRA_AUX!=MW_T_AMOSTRA)				//Verifica se houve alteraÁ„o no parametro restrito INTERVALO DE AMOSTRAGEM 
+1AE6:  MOVF   5E,W
+1AE8:  SUBWF  60,W
+1AEA:  BNZ   1AF2
+1AEC:  MOVF   5F,W
+1AEE:  SUBWF  61,W
+1AF0:  BZ    1B08
+.................... 		{												// 
+.................... 			MW_T_AMOSTRA_AUX=MW_T_AMOSTRA;				// 
+1AF2:  MOVFF  5F,61
+1AF6:  MOVFF  5E,60
+.................... 			write_eeprom_word(8, MW_T_AMOSTRA);			//Atualiza valor na EEPROM 
+1AFA:  MOVLW  08
+1AFC:  MOVWF  66
+1AFE:  MOVFF  5F,68
+1B02:  MOVFF  5E,67
+1B06:  RCALL  19E4
+.................... 		} 
+.................... 		if(MW_FATOR_MEDIA_AUX!=MW_FATOR_MEDIA)			//Verifica se houve alteraÁ„o no parametro restrito FATOR MEDIA CAMINHANTE 
+1B08:  MOVF   62,W
+1B0A:  SUBWF  64,W
+1B0C:  BNZ   1B14
+1B0E:  MOVF   63,W
+1B10:  SUBWF  65,W
+1B12:  BZ    1B2A
+.................... 		{												// 
+.................... 			MW_FATOR_MEDIA_AUX=MW_FATOR_MEDIA;			// 
+1B14:  MOVFF  63,65
+1B18:  MOVFF  62,64
+.................... 			write_eeprom_word(10, MW_FATOR_MEDIA);		//Atualiza valor na EEPROM 
+1B1C:  MOVLW  0A
+1B1E:  MOVWF  66
+1B20:  MOVFF  63,68
+1B24:  MOVFF  62,67
+1B28:  RCALL  19E4
+.................... 		}								 
+.................... 	}	 
+.................... }	 
+1B2A:  GOTO   1D36 (RETURN)
+.................... /*=============================================================================================================================================== 
+.................... ROTINA PRINCIPAL 
+.................... ===============================================================================================================================================*/ 
+.................... void main() 
+.................... { 
+1B2E:  CLRF   FF8
+1B30:  BCF    FD0.7
+1B32:  BSF    0D.7
+1B34:  CLRF   FEA
+1B36:  CLRF   FE9
+1B38:  MOVF   FC1,W
+1B3A:  ANDLW  C0
+1B3C:  IORLW  0F
+1B3E:  MOVWF  FC1
+1B40:  MOVLW  07
+1B42:  MOVWF  FB4
+1B44:  BCF    18.0
+1B46:  BCF    18.1
+1B48:  BCF    18.2
+1B4A:  CLRF   19
+1B4C:  CLRF   1A
+1B4E:  CLRF   1B
+1B50:  CLRF   1C
+1B52:  CLRF   1D
+1B54:  CLRF   1E
+1B56:  CLRF   1F
+1B58:  CLRF   20
+1B5A:  CLRF   21
+1B5C:  CLRF   22
+1B5E:  CLRF   23
+1B60:  CLRF   24
+1B62:  CLRF   25
+1B64:  CLRF   26
+1B66:  CLRF   27
+1B68:  CLRF   28
+1B6A:  CLRF   29
+1B6C:  CLRF   2A
+1B6E:  CLRF   2B
+1B70:  CLRF   2C
+1B72:  CLRF   2D
+1B74:  CLRF   2E
+1B76:  CLRF   2F
+1B78:  CLRF   30
+1B7A:  CLRF   31
+1B7C:  CLRF   32
+1B7E:  CLRF   33
+1B80:  CLRF   34
+1B82:  CLRF   35
+1B84:  CLRF   36
+1B86:  CLRF   37
+1B88:  CLRF   38
+1B8A:  CLRF   39
+1B8C:  CLRF   3A
+1B8E:  CLRF   3B
+1B90:  CLRF   3C
+1B92:  CLRF   3D
+1B94:  CLRF   3E
+1B96:  BCF    18.3
+1B98:  CLRF   3F
+1B9A:  CLRF   40
+1B9C:  CLRF   41
+1B9E:  CLRF   42
+1BA0:  CLRF   43
+1BA2:  CLRF   44
+1BA4:  CLRF   45
+1BA6:  CLRF   46
+1BA8:  CLRF   47
+1BAA:  CLRF   48
+1BAC:  CLRF   49
+1BAE:  CLRF   4A
+1BB0:  CLRF   4B
+1BB2:  CLRF   4C
+1BB4:  CLRF   4D
+1BB6:  CLRF   4E
+1BB8:  CLRF   4F
+1BBA:  CLRF   50
+1BBC:  CLRF   51
+1BBE:  CLRF   52
+1BC0:  CLRF   53
+1BC2:  CLRF   54
+1BC4:  CLRF   55
+1BC6:  CLRF   56
+1BC8:  CLRF   57
+1BCA:  CLRF   58
+1BCC:  CLRF   59
+1BCE:  CLRF   5A
+1BD0:  CLRF   5B
+1BD2:  CLRF   5C
+1BD4:  CLRF   5D
+1BD6:  CLRF   5E
+1BD8:  CLRF   5F
+1BDA:  CLRF   60
+1BDC:  CLRF   61
+1BDE:  CLRF   62
+1BE0:  CLRF   63
+1BE2:  CLRF   64
+1BE4:  CLRF   65
+.................... 	//CONFIGURA«√O DO OSCILADOR 
+.................... 	setup_oscillator(OSC_8MHZ);		//Determina que o clock do oscilador interno ser· de 8MHz 
+1BE6:  MOVLW  70
+1BE8:  MOVWF  FD3
+1BEA:  MOVF   FD3,W
+....................  
+.................... 	//CONFIGURA«√O DO TIMER 0 E DA INTERRUP«√O POR TEMPO 
+.................... 	enable_interrupts(GLOBAL);								//Habilita interrupÁıes globais 
+1BEC:  MOVLW  C0
+1BEE:  IORWF  FF2,F
+.................... 	enable_interrupts(INT_TIMER0);							//Habilita interrupÁ„o pelo TIMER 0 
+1BF0:  BSF    FF2.5
+.................... 	setup_timer_0 (RTCC_DIV_4|RTCC_INTERNAL);				//Prescaler:4 / Clock Interno / 16bits	(INC a cada 2us / InterrupÁ„o a cada 0,1s 
+1BF2:  MOVLW  81
+1BF4:  MOVWF  FD5
+.................... 	set_timer0(15536); 										//Seta Timer 0 em 15536 para que ocorra apenas 50000 contagens atÈ a proxima 
+1BF6:  MOVLW  3C
+1BF8:  MOVWF  FD7
+1BFA:  MOVLW  B0
+1BFC:  MOVWF  FD6
+.................... 															//interrupÁ„o que ocorre em 65536 e assim esta ocorra em 0,1s como desejado	 
+.................... 	 
+.................... 	//CONFIGURA«√O DO TIMER 1 
+.................... 	setup_timer_1 (T1_DIV_BY_4|T1_INTERNAL);				//Prescaler:4 / Clock Interno / 16bits	(INC a cada 2us / InterrupÁ„o a cada 0,1s 
+1BFE:  MOVLW  A5
+1C00:  MOVWF  FCD
+.................... 	 
+.................... 	//CARREGA VALORES RETENTIVOS DA EEPROM 
+.................... 	MW_GANHO=read_eeprom_word(0); 
+1C02:  CLRF   66
+1C04:  CALL   05DE
+1C08:  MOVFF  02,4F
+1C0C:  MOVFF  01,4E
+.................... 	MW_GANHO_AUX=MW_GANHO; 
+1C10:  MOVFF  4F,51
+1C14:  MOVFF  4E,50
+.................... 	MW_OFFSET=read_eeprom_word(2); 
+1C18:  MOVLW  02
+1C1A:  MOVWF  66
+1C1C:  CALL   05DE
+1C20:  MOVFF  02,53
+1C24:  MOVFF  01,52
+.................... 	MW_OFFSET_AUX=MW_OFFSET; 
+1C28:  MOVFF  53,55
+1C2C:  MOVFF  52,54
+.................... 	MW_HIDR_REL=read_eeprom_word(4); 
+1C30:  MOVLW  04
+1C32:  MOVWF  66
+1C34:  CALL   05DE
+1C38:  MOVFF  02,57
+1C3C:  MOVFF  01,56
+.................... 	MW_HIDR_REL_AUX=MW_HIDR_REL; 
+1C40:  MOVFF  57,59
+1C44:  MOVFF  56,58
+.................... 	MW_METODO_LEITURA=read_eeprom_word(6); 
+1C48:  MOVLW  06
+1C4A:  MOVWF  66
+1C4C:  CALL   05DE
+1C50:  MOVFF  02,5B
+1C54:  MOVFF  01,5A
+.................... 	MW_METODO_LEITURA_AUX=MW_METODO_LEITURA; 
+1C58:  MOVFF  5B,5D
+1C5C:  MOVFF  5A,5C
+.................... 	MW_T_AMOSTRA=read_eeprom_word(8); 
+1C60:  MOVLW  08
+1C62:  MOVWF  66
+1C64:  CALL   05DE
+1C68:  MOVFF  02,5F
+1C6C:  MOVFF  01,5E
+.................... 	MW_T_AMOSTRA_AUX=MW_T_AMOSTRA; 
+1C70:  MOVFF  5F,61
+1C74:  MOVFF  5E,60
+.................... 	MW_FATOR_MEDIA=read_eeprom_word(10); 
+1C78:  MOVLW  0A
+1C7A:  MOVWF  66
+1C7C:  CALL   05DE
+1C80:  MOVFF  02,63
+1C84:  MOVFF  01,62
+.................... 	MW_FATOR_MEDIA_AUX=MW_FATOR_MEDIA; 
+1C88:  MOVFF  63,65
+1C8C:  MOVFF  62,64
+.................... 	 
+.................... 	//INICIALIZA«√O DO LCD 
+.................... 	lcd_init();							//Inicializa LCD 
+1C90:  GOTO   06EA
+.................... 	 
+.................... 	//MENSAGEM INICIAL	 
+.................... 	lcd_gotoxy(1,1);					//Exibe mensagem inicial 
+1C94:  MOVLW  01
+1C96:  MOVWF  75
+1C98:  MOVWF  76
+1C9A:  CALL   0742
+.................... 	lcd_putc("    CORRETOR");			// 
+1C9E:  CLRF   66
+1CA0:  MOVF   66,W
+1CA2:  CALL   0536
+1CA6:  IORLW  00
+1CA8:  BZ    1CB4
+1CAA:  INCF   66,F
+1CAC:  MOVWF  74
+1CAE:  CALL   0764
+1CB2:  BRA    1CA0
+.................... 	lcd_gotoxy(1,2);					// 
+1CB4:  MOVLW  01
+1CB6:  MOVWF  75
+1CB8:  MOVLW  02
+1CBA:  MOVWF  76
+1CBC:  CALL   0742
+.................... 	lcd_putc("   DE UMIDADE");			// 
+1CC0:  CLRF   66
+1CC2:  MOVF   66,W
+1CC4:  CALL   055E
+1CC8:  IORLW  00
+1CCA:  BZ    1CD6
+1CCC:  INCF   66,F
+1CCE:  MOVWF  74
+1CD0:  CALL   0764
+1CD4:  BRA    1CC2
+.................... 	 
+.................... 	delay_ms(1000);						//Aguarda delay 
+1CD6:  MOVLW  04
+1CD8:  MOVWF  66
+1CDA:  MOVLW  FA
+1CDC:  MOVWF  75
+1CDE:  CALL   063C
+1CE2:  DECFSZ 66,F
+1CE4:  BRA    1CDA
+.................... 	 
+.................... 	lcd_clear();						//Limpa LCD 
+1CE6:  CALL   07A8
+.................... 	lcd_gotoxy(9,2);					//Exibe vers„o do software 
+1CEA:  MOVLW  09
+1CEC:  MOVWF  75
+1CEE:  MOVLW  02
+1CF0:  MOVWF  76
+1CF2:  CALL   0742
+.................... 	lcd_putc("V1.0.00b");				//	 
+1CF6:  CLRF   66
+1CF8:  MOVF   66,W
+1CFA:  CALL   0586
+1CFE:  IORLW  00
+1D00:  BZ    1D0C
+1D02:  INCF   66,F
+1D04:  MOVWF  74
+1D06:  CALL   0764
+1D0A:  BRA    1CF8
+.................... 	 
+.................... 	delay_ms(1000);						//Aguarda delay 
+1D0C:  MOVLW  04
+1D0E:  MOVWF  66
+1D10:  MOVLW  FA
+1D12:  MOVWF  75
+1D14:  CALL   063C
+1D18:  DECFSZ 66,F
+1D1A:  BRA    1D10
+.................... 	 
+.................... 	MW_SCREEN=1;						//Carrega tela inicial como alvo 
+1D1C:  CLRF   32
+1D1E:  MOVLW  01
+1D20:  MOVWF  31
+.................... 	 
+.................... 	while(true)		//LaÁo infinito pra execuÁ„o ciclica do programa 
+.................... 	{	 
+.................... 		//CHAMADA DA SUBROTINA DE CONTROLE DA IHM 
+.................... 		if(TON_IHM_ATUALIZA>=1)	//Chama controle da IHM a cada 100ms 
+1D22:  MOVF   3C,F
+1D24:  BNZ   1D2C
+1D26:  MOVF   3B,W
+1D28:  SUBLW  00
+1D2A:  BC    1D36
+.................... 		{ 
+.................... 			TON_IHM_ATUALIZA=0;	//Zera temporizador de chamada do controle da IHM 
+1D2C:  CLRF   3C
+1D2E:  CLRF   3B
+.................... 			IHM(); 
+1D30:  GOTO   0EFC
+.................... 			EEPROM(); 
+1D34:  BRA    1A4A
+.................... 		}	 
+.................... 	} 
+1D36:  BRA    1D22
+.................... } 
+1D38:  SLEEP 
+
+Configuration Fuses:
+   Word  1: 0900   NOIESO NOFCMEN INTRC
+   Word  2: 1E1E   BROWNOUT NOWDT BORV20 PUT WDT32768
+   Word  3: 8300   PBADEN CCP2C1 NOLPT1OSC MCLR RESERVED
+   Word  4: 0081   STVREN NODEBUG NOLVP NOXINST RESERVED
+   Word  5: C00F   NOPROTECT NOCPD NOCPB
+   Word  6: E00F   NOWRT NOWRTD NOWRTC NOWRTB
+   Word  7: 400F   NOEBTR NOEBTRB

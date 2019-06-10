@@ -1,0 +1,104 @@
+
+ROM used: 7478 (23%)
+          7478 (23%) including unused fragments
+
+          6 Average locations per line
+          19 Average locations per statement
+
+RAM used: 103 (7%) at main() level
+          129 (8%) worst case
+
+Stack used: 7 worst case (out of 30 total available)
+
+Lines Stmts  %   Files
+----- ----- ---  -----
+  428   237  59  main.c
+  438     0   0  C:\Program Files (x86)\PICC\devices\18F4520.h
+  188    68  17  DisplayLDC.C
+   32    11   3  Transicao.h
+  146    83  21  Teclado_matricial.h
+   27     4   1  eeprom.h
+----- -----
+ 1259   403 Total
+
+Page ROM  %  RAM   Vol Diff  Functions:
+---- --- --- ---   --- ----  ----------
+0     38   0   1             @delay_ms1
+0     30   0   0             @const64
+0     56   0   3   463  4.3  lcd_read_byte
+0     26   0   1   134  2.2  lcd_send_nibble
+0     54   0   3   317  4.3  lcd_send_byte
+0     88   1   3   422  4.7  lcd_init
+0     34   0   4   186  5.5  lcd_gotoxy
+0     68   0   1   272  4.1  lcd_putc
+0     64   0   1   121  1.6  lcd_clear
+0     44   0   0             @const91
+0     34   0   1   179  3.5  plsp
+0    198   1   0  1292  2.7  teclado3x4_scan
+0    806   5  12  1137  7.3  teclado_3x4_valor
+0    122   1  13             @DIV3232
+0     44   0   0             @goto10189
+0     84   1  14             @MUL3232
+0    102   1   6   116  3.4  write_eeprom_word
+0     94   1   8    66  2.3  read_eeprom_word
+0     32   0   5             @MUL1616
+0     20   0   0    29  1.2  timer_zero
+0   2792  19   2  8195  6.5  IHM
+0     42   0   0             @const157
+0     40   0   3             @DIV88
+0    102   1   2             @PRINTF_U_84
+0    178   1   9             @PRINTF_LU_84
+0     28   0   0             @const169
+0     28   0   0             @const171
+0     34   0   0             @const172
+0     46   0   0             @const173
+0     46   0   0             @const175
+0     32   0   0             @const176
+0     44   0   0             @const177
+0     30   0   0             @const178
+0     44   0   0             @const179
+0     46   0   0             @const180
+0     44   0   0             @const182
+0     40   0   0             @const184
+0     46   0   0             @const185
+0     46   0   0             @const187
+0     42   0   0             @const190
+0     44   0   0             @const194
+0     44   0   0             @const195
+0     44   0   0             @const197
+0     38   0   0             @const198
+0     46   0   0             @const199
+0    204   1  13             @PRINTF_L32U_84FP
+0     36   0   0             @const203
+0     48   0   0             @const204
+0     36   0   0             @const205
+0     44   0   0             @const206
+0     38   0   0             @const207
+0     46   0   0             @const208
+0    228   2   0   624  3.4  EEPROM
+0    524   4   1  1015  4.3  MAIN
+0     40   0   0             @const212
+0     40   0   0             @const213
+0     36   0   0             @const214
+
+Program metrics:
+    Functions               16
+    Statements              403
+    Comments                612
+    Volume (V)              20564
+    Difficilty (D)          61.1
+    Effort to implement (E) 1255893
+    Time to implement (T)   19 hours, 23 minutes
+    Est Delivered Bugs (B)  4
+    Cyclomatic Complexity   69
+    Maintainability (MI)    73
+
+ Segment     Used  Free
+-----------  ----  ----
+00000-00002     4  0  
+00004-00006     0  4  
+00008-0009C   150  0  
+0009E-07FFE  7324  25286  
+
+
+
